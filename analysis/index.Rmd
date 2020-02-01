@@ -9,6 +9,8 @@ editor_options:
   chunk_output_type: console
 ---
 
-Welcome to my research website.
+```{r, echo=F}
+knitr::include_graphics("MaxOn Analytics Logo.png")
+```
 
-![MaxOn Analytics Logo](MaxOn Analytics Logo.png)
+Welcome to my research website.

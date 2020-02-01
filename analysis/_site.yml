@@ -1,7 +1,7 @@
-name: "MaxOn Analytics"
+name: MaxOn Analytics
 output_dir: ../docs
 navbar:
-  title: "MaxOn Analytics"
+  title: MaxOn Analytics
   left:
   - text: Home
     href: index.html
@@ -9,6 +9,10 @@ navbar:
     href: about.html
   - text: License
     href: license.html
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/maxonanalytics/maxonanalytics
 output:
   workflowr::wflow_html:
     toc: yes

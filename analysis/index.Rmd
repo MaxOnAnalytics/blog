@@ -10,3 +10,5 @@ editor_options:
 ---
 
 Welcome to my research website.
+
+![MaxOn Analytics Logo](MaxOn Analytics Logo.png)

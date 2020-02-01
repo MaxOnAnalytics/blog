@@ -4,6 +4,7 @@ site: workflowr::wflow_site
 output:
   workflowr::wflow_html:
     toc: false
+    theme: united
 editor_options:
   chunk_output_type: console
 ---

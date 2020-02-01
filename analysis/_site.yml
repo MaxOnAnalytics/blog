@@ -9,7 +9,10 @@ navbar:
     href: about.html
   - text: License
     href: license.html
-  right:
+  right: 
+  - icon: fa-linkedin
+    text: LinkedIn
+    href: https://www.linkedin.com/in/bryant-molloy-r95/
   - icon: fa-github
     text: Github
     href: https://github.com/maxonanalytics/maxonanalytics

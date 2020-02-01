@@ -11,7 +11,7 @@ navbar:
     href: license.html
   right:
   - icon: fa-github
-    text: Source code
+    text: Github
     href: https://github.com/maxonanalytics/maxonanalytics
 output:
   workflowr::wflow_html:

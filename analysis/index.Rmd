@@ -9,8 +9,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r, echo=F}
-knitr::include_graphics("MaxOn Analytics Logo.png")
-```
+![](assets/MaxOn Analytics Logo.png)
 
 Welcome to my research website.

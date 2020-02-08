@@ -5,10 +5,10 @@ navbar:
   left:
   - text: Home
     href: index.html
+  - text: Blog Posts
+    href: blogposts.html
   - text: About
     href: about.html
-  - text: License
-    href: license.html
   right: 
   - icon: fa-linkedin
     href: https://www.linkedin.com/in/bryant-molloy-r95/

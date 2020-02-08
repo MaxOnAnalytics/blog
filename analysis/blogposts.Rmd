@@ -1,0 +1,10 @@
+---
+title: "Blog Posts"
+output:
+  workflowr::wflow_html:
+    toc: false
+    theme: united
+editor_options:
+  chunk_output_type: console
+---
+

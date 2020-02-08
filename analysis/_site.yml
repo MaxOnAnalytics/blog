@@ -12,7 +12,7 @@ navbar:
   right:
   - icon: fa-github
     text: Source code
-    href: https://github.com/blog/maxonanalytics
+    href: https://github.com/maxonanalytics/blog
 output:
   workflowr::wflow_html:
     toc: yes

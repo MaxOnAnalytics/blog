@@ -8,3 +8,5 @@ editor_options:
   chunk_output_type: console
 ---
 
+
+* [Kobe - Looking Back at a Laker Legend](20200323-Kobe---Looking-Back-at-a-Laker-Legend.html)

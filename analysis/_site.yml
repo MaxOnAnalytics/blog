@@ -19,3 +19,4 @@ output:
     toc_float: yes
     theme: united
     highlight: textmate
+    df_print: paged

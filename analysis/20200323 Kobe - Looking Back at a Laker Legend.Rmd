@@ -197,10 +197,11 @@ system.time(create_shot_gif(kobe_shots, start_year = 2015, gif_duration = 90))
 ```
 
 
-<img width="48%" src="/docs/assets/20200323/Kobe Bryant Shots 1996-1997.gif"/>
-<img width="48%" src="/docs/assets/20200323/Kobe Bryant Shots 2000-2001.gif"/>
-<img width="48%" src="/docs/assets/20200323/Kobe Bryant Shots 2007-2008.gif"/>
-<img width="48%" src="/docs/assets/20200323/Kobe Bryant Shots 2015-2016.gif"/>
+<img width="48%" src="./docs/assets/20200323/Kobe Bryant Shots 1996-1997.gif"/>
+<img width="48%" src="./docs/assets/20200323/Kobe Bryant Shots 2000-2001.gif"/>
+<img width="48%" src="./docs/assets/20200323/Kobe Bryant Shots 2007-2008.gif"/>
+<img width="48%" src="./docs/assets/20200323/Kobe Bryant Shots 2015-2016.gif"/>
+
 
 ## Shot Breakdown - FG% vs EFG%
 
@@ -255,10 +256,10 @@ kobe_pps_line <- ggplot(kobe_fg_pct, aes(x = shot_distance, y = pps)) +
 
 ```{r, echo=F, warning=F, message=F}
 
-kobe_fg_pct_table <- tbl_df(kobe_fg_pct %>% rename(`Shot Distance (ft)` = shot_distance, `FG%` = fg_pct, 
+kobe_fg_pct_table <- kobe_fg_pct %>% rename(`Shot Distance (ft)` = shot_distance, `FG%` = fg_pct, 
                                                    `EFG%` = efg_pct, `Points per Shot` = pps, 
                                                    `Total Shots` = total_shots, 
-                                                   `Percent of Total Shots` = pct_of_total))
+                                                   `Percent of Total Shots` = pct_of_total) %>% as.data.frame()
 kobe_fg_pct_table
 
 ```
@@ -302,7 +303,8 @@ kobe_by_zone <- kobe_shots %>%
 kobe_by_zone %>% 
   mutate(pct_of_shots = scales::percent(pct_of_shots, accuracy = 0.01)) %>%
   rename(`Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct, 
-         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Total Shots` = pct_of_shots)
+         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Total Shots` = pct_of_shots) %>%
+  as.data.frame()
 
 ```
 
@@ -326,7 +328,8 @@ kobe_by_zone_year <- kobe_shots %>%
 kobe_by_zone_year %>% 
   mutate(pct_of_season = scales::percent(pct_of_season, accuracy = 0.01)) %>%
   rename(Season = season_year, `Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct, 
-         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season)
+         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
+  as.data.frame()
 
 # Percentage of Shots Bar
 
@@ -470,10 +473,7 @@ create_heat_map(kobe_shots, 1996, 2015)
 
 ```
 </div>
-</div>
 
-
-<div class = "row">
 <div class = "col-md-6">
 ```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10}
 
@@ -505,7 +505,8 @@ kobe_by_zone_qtr <- kobe_shots %>%
 kobe_by_zone_qtr %>% 
   mutate(pct_of_qtr = scales::percent(pct_of_qtr, accuracy = 0.01)) %>%
   rename(`FG%` = fg_pct, `EFG%` = efg_pct, `Points per Shot` = pps, 
-         `Total Shots` = total_shots, `Percent of Quarter Shots` = pct_of_qtr)
+         `Total Shots` = total_shots, `Percent of Quarter Shots` = pct_of_qtr) %>%
+  as.data.frame()
 
 # Percent of Shots Bar
 
@@ -581,7 +582,8 @@ kobe_by_opponent_year <- kobe_shots %>%
 kobe_by_opponent_year %>% 
   mutate(pct_of_season = scales::percent(pct_of_season, accuracy = 0.01)) %>%
   rename(Season = season_year, Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct, 
-         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season)
+         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
+  as.data.frame()
 
 # Color by Opponent
 

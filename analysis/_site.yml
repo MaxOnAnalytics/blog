@@ -10,8 +10,11 @@ navbar:
   - text: About
     href: about.html
   right:
+  - icon: fa-linkedin
+    text: LinkedIn
+    href: https://www.linkedin.com/in/bryant-molloy-r95/
   - icon: fa-github
-    text: Source code
+    text: Github
     href: https://github.com/maxonanalytics/blog
 output:
   workflowr::wflow_html:

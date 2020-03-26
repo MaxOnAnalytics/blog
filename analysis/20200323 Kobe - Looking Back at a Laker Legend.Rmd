@@ -247,6 +247,7 @@ kobe_fg_pct <- kobe_shots %>% mutate(flag3 = ifelse(shot_value == 3, 1, 0)) %>%
             total_shots = n()) %>%
   mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
          pct_of_total = round(total_shots / sum(total_shots), 4)) %>%
+  mutate(pct_of_total = scales::percent(pct_of_total, accuracy = 0.01)) %>%
   filter(shot_distance <= 29) %>%
   arrange(shot_distance)
 
@@ -529,7 +530,7 @@ kobe_by_zone_qtr <- kobe_shots %>%
 
 kobe_by_zone_qtr %>% 
   mutate(pct_of_qtr = scales::percent(pct_of_qtr, accuracy = 0.01)) %>%
-  rename(`FG%` = fg_pct, `EFG%` = efg_pct, `Points per Shot` = pps, 
+  rename(Quarter = quarter, `Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct, `Points per Shot` = pps, 
          `Total Shots` = total_shots, `Percent of Quarter Shots` = pct_of_qtr) %>%
   as.data.frame()
 

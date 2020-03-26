@@ -10,7 +10,7 @@ output:
 knitr::opts_chunk$set(echo = T)
 ```
 
-## Shot Charts and Gifs 
+# Shot Charts and Gifs 
 
 ```{r, include=F}
 
@@ -197,13 +197,38 @@ system.time(create_shot_gif(kobe_shots, start_year = 2015, gif_duration = 90))
 ```
 
 
-<img width="48%" src="./docs/assets/20200323/Kobe Bryant Shots 1996-1997.gif"/>
-<img width="48%" src="./docs/assets/20200323/Kobe Bryant Shots 2000-2001.gif"/>
-<img width="48%" src="./docs/assets/20200323/Kobe Bryant Shots 2007-2008.gif"/>
-<img width="48%" src="./docs/assets/20200323/Kobe Bryant Shots 2015-2016.gif"/>
+## Create GIPHY links for each Kobe year
+
+<div class = "row">
+<div class = "col-md-6">
+
+![](https://media.giphy.com/media/KbSPY3DjK3CoDndO39/giphy.gif)
+
+</div>
+
+<div class = "col-md-6">
+
+![](https://media.giphy.com/media/l02l1OAmqq3toJyppA/giphy.gif)
+
+</div>
+</div>
+
+<div class = "row">
+<div class = "col-md-6">
+
+![](https://media.giphy.com/media/lS7Z4D7PEJwkMVbDNK/giphy.gif)
+
+</div>
+
+<div class = "col-md-6">
+
+![](https://media.giphy.com/media/RGjUg9cjiiH9eUaP01/giphy.gif)
+
+</div>
+</div>
 
 
-## Shot Breakdown - FG% vs EFG%
+# Shot Breakdown - FG% vs EFG%
 
 ```{r, echo=F, warning=F, message=F}
 
@@ -380,7 +405,7 @@ kobe_by_zone_year_pps_bar
 </div>
 
 
-## Heat Maps
+# Heat Maps
 
 ```{r, echo=F, warning=F, message=F}
 
@@ -557,7 +582,7 @@ kobe_by_zone_qtr_pps_bar
 </div>
 
 
-## Shots by Opponent
+# Shots by Opponent
 
 ```{r, echo=F, warning=F, message=F}
 

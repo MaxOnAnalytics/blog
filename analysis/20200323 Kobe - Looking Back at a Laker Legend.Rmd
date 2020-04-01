@@ -626,7 +626,7 @@ opponent_colors <- c("ATL" = "red", "BKN" = "black", "BOS" = "green", "CHA" = "t
 
 kobe_by_opponent_year_pps_line <- ggplot(kobe_by_opponent_year, aes(x = season_year, y = pps, col = opponent)) + 
   geom_line() + 
-  scale_y_continuous(limits = c(0, 1.6)) + 
+  scale_y_continuous(limits = c(0.4, 1.6)) + 
   facet_wrap(~opponent, ncol = 6) + 
   scale_color_manual(values = opponent_colors) + 
   ggtitle("Kobe Bryant Points per Shot by Opponent in Each Season", 
@@ -642,7 +642,7 @@ kobe_by_opponent_year_pps_line <- ggplot(kobe_by_opponent_year, aes(x = season_y
 ```
 
 
-```{r, echo=F, warning=F, message=F, fig.align="center"}
+```{r, echo=F, warning=F, message=F}
 
 kobe_by_opponent_year_pps_line
 

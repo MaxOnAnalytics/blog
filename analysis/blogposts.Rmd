@@ -9,4 +9,6 @@ editor_options:
 ---
 
 
-* [Kobe - Looking Back at a Laker Legend](20200323-Kobe---Looking-Back-at-a-Laker-Legend.html)
+![Kobe - Looking Back at a Laker Legend](20200323-Kobe---Looking-Back-at-a-Laker-Legend.html)
+
+[![Kobe - Looking Back at a Laker Legend](https://img.bleacherreport.net/img/images/photos/003/695/304/b0d310fc34f5a2392bb909b914fdb75c_crop_exact.jpg?h=646&w=970&q=70&crop_x=center&crop_y=top)](20200323-Kobe---Looking-Back-at-a-Laker-Legend.html)

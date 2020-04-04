@@ -10,7 +10,7 @@ output:
 knitr::opts_chunk$set(echo = T)
 ```
 
-![](https://img.bleacherreport.net/img/images/photos/003/695/304/b0d310fc34f5a2392bb909b914fdb75c_crop_exact.jpg?h=646&w=970&q=70&crop_x=center&crop_y=top)
+![](assets/20200323/Kobe Bryant Picture.jpg)
 
 # Shot Charts and Gifs 
 
@@ -206,11 +206,15 @@ system.time(create_shot_gif(kobe_shots, start_year = 2015, gif_duration = 90))
 
 ![](https://media.giphy.com/media/KbSPY3DjK3CoDndO39/giphy.gif)
 
+![](assets/20200323/Kobe Bryant Shots 1996-1997.gif)
+
 </div>
 
 <div class = "col-md-6">
 
 ![](https://media.giphy.com/media/l02l1OAmqq3toJyppA/giphy.gif)
+
+![](assets/20200323/Kobe Bryant Shots 2000-2001.gif)
 
 </div>
 </div>
@@ -220,11 +224,15 @@ system.time(create_shot_gif(kobe_shots, start_year = 2015, gif_duration = 90))
 
 ![](https://media.giphy.com/media/lS7Z4D7PEJwkMVbDNK/giphy.gif)
 
+![](assets/20200323/Kobe Bryant Shots 2007-2008.gif)
+
 </div>
 
 <div class = "col-md-6">
 
 ![](https://media.giphy.com/media/RGjUg9cjiiH9eUaP01/giphy.gif)
+
+![](assets/20200323/Kobe Bryant Shots 2015-2016.gif)
 
 </div>
 </div>

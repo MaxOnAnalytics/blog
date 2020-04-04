@@ -230,6 +230,113 @@ system.time(create_shot_gif(kobe_shots, start_year = 2015, gif_duration = 90))
 </div>
 
 
+
+# Heat Maps
+
+```{r, echo=F, warning=F, message=F}
+
+# Create Heat Map Function
+
+create_heat_map <- function(shot_data, start_year, end_year = start_year){
+  
+  shot_data <- add_ranks(shot_data)
+  
+  # Create court background
+
+  court_theme <- court_themes$black
+  court <- plot_court(court_theme = court_theme, use_short_three = F)
+  
+  # Filter data to include shots between start_year and end_year
+  
+  shot_data <- shot_data %>% filter(season_year >= start_year & season_year <= end_year)
+  
+  # Create player variable
+  
+  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
+    select(player_name) %>% distinct()
+  
+  # Create heat map
+  
+  heat_map <- court + 
+    stat_density_2d(data = shot_data, aes(x = loc_x, y = loc_y, fill = stat(density / max(density))), 
+                    geom = "raster", contour = F, interpolate = T, n = 200) + 
+    geom_path(data = court_points, aes(x = x, y = y, group = desc), color = court_theme$lines) + 
+    scale_fill_viridis_c("Shot Frequency", limits = c(0, 1), breaks = c(0, 1), option = "inferno") + 
+    ggtitle(paste(player, "Career Shots Heat Map"), 
+            subtitle = paste(start_year, "-", end_year + 1)) + 
+    labs(caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+    theme(legend.position = "none", 
+          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5), 
+          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
+          plot.caption = element_text(colour = "white", size = 9, hjust = 1))
+  
+  return(heat_map)
+}
+
+
+# Create Heat Map Outside Restricted Area Function
+
+create_heat_map_outside_restricted <- function(shot_data, start_year, end_year = start_year){
+  
+  shot_data <- add_ranks(shot_data)
+  
+  shot_data <- shot_data %>% filter(shot_zone_basic != "Restricted Area")
+  
+  # Create court background
+
+  court_theme <- court_themes$black
+  court <- plot_court(court_theme = court_theme, use_short_three = F)
+  
+  # Filter data to include shots between start_year and end_year
+  
+  shot_data <- shot_data %>% filter(season_year >= start_year & season_year <= end_year)
+  
+  # Create player variable
+  
+  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
+    select(player_name) %>% distinct()
+  
+  # Create heat map
+  
+  heat_map <- court + 
+    stat_density_2d(data = shot_data, aes(x = loc_x, y = loc_y, fill = stat(density / max(density))), 
+                    geom = "raster", contour = F, interpolate = T, n = 200) + 
+    geom_path(data = court_points, aes(x = x, y = y, group = desc), color = court_theme$lines) + 
+    scale_fill_viridis_c("Shot Frequency", limits = c(0, 1), breaks = c(0, 1), option = "inferno") + 
+    ggtitle(paste(player, "Career Shots Heat Map \nOutside Restricted Area"), 
+            subtitle = paste(start_year, "-", end_year + 1)) + 
+    labs(caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+    theme(legend.position = "none", 
+          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5), 
+          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
+          plot.caption = element_text(colour = "white", size = 9, hjust = 1))
+  
+  return(heat_map)
+}
+
+```
+
+<div class = "row">
+<div class = "col-md-6">
+```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10}
+
+create_heat_map(kobe_shots, 1996, 2015)
+
+```
+
+</div>
+
+<div class = "col-md-6">
+```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10}
+
+create_heat_map_outside_restricted(kobe_shots, 1996, 2015)
+
+```
+
+</div>
+</div>
+
+
 # Shot Breakdown - FG% vs EFG%
 
 ```{r, echo=F, warning=F, message=F}
@@ -364,7 +471,7 @@ kobe_by_zone_year %>%
 kobe_by_zone_year_pct_bar <- ggplot(kobe_by_zone_year, aes(x = season_year, y = pct_of_season)) + 
   geom_col(fill = 'purple') + 
   scale_y_continuous(limits = c(0, 0.5), labels = scales::percent_format(accuracy = 1)) + 
-  facet_wrap(~shot_zone_basic, ncol = 4) + 
+  facet_wrap(~shot_zone_basic, ncol = 2) + 
   ggtitle("Kobe Bryant Percentage of Shots \n by Zone in Each Season", 
           subtitle = "1996 - 2016") + 
   labs(x = 'Season', y = 'Percentage of Season Shots', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
@@ -379,7 +486,7 @@ kobe_by_zone_year_pct_bar <- ggplot(kobe_by_zone_year, aes(x = season_year, y = 
 kobe_by_zone_year_pps_bar <- ggplot(kobe_by_zone_year, aes(x = season_year, y = pps)) + 
   geom_col(fill = 'purple') + 
   scale_y_continuous(limits = c(0, 1.6)) + 
-  facet_wrap(~shot_zone_basic, ncol = 4) + 
+  facet_wrap(~shot_zone_basic, ncol = 2) + 
   ggtitle("Kobe Bryant Points per Shot \n by Zone in Each Season", 
           subtitle = "1996 - 2016") + 
   labs(x = 'Season', y = 'Points per Shot', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
@@ -392,7 +499,7 @@ kobe_by_zone_year_pps_bar <- ggplot(kobe_by_zone_year, aes(x = season_year, y = 
 ```
 
 <div class = "row">
-```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10, fig.height=3}
+```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10, fig.height=5}
 
 kobe_by_zone_year_pct_bar
 
@@ -400,115 +507,11 @@ kobe_by_zone_year_pct_bar
 </div>
 
 <div class = "row">
-```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10, fig.height=3}
+```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10, fig.height=5}
 
 kobe_by_zone_year_pps_bar
 
 ```
-</div>
-
-
-# Heat Maps
-
-```{r, echo=F, warning=F, message=F}
-
-# Create Heat Map Function
-
-create_heat_map <- function(shot_data, start_year, end_year = start_year){
-  
-  shot_data <- add_ranks(shot_data)
-  
-  # Create court background
-
-  court_theme <- court_themes$black
-  court <- plot_court(court_theme = court_theme, use_short_three = F)
-  
-  # Filter data to include shots between start_year and end_year
-  
-  shot_data <- shot_data %>% filter(season_year >= start_year & season_year <= end_year)
-  
-  # Create player variable
-  
-  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
-    select(player_name) %>% distinct()
-  
-  # Create heat map
-  
-  heat_map <- court + 
-    stat_density_2d(data = shot_data, aes(x = loc_x, y = loc_y, fill = stat(density / max(density))), 
-                    geom = "raster", contour = F, interpolate = T, n = 200) + 
-    geom_path(data = court_points, aes(x = x, y = y, group = desc), color = court_theme$lines) + 
-    scale_fill_viridis_c("Shot Frequency", limits = c(0, 1), breaks = c(0, 1), option = "inferno") + 
-    ggtitle(paste(player, "Career Shots Heat Map"), 
-            subtitle = paste(start_year, "-", end_year + 1)) + 
-    labs(caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
-    theme(legend.position = "none", 
-          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5), 
-          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
-          plot.caption = element_text(colour = "white", size = 9, hjust = 1))
-  
-  return(heat_map)
-}
-
-
-# Create Heat Map Outside Restricted Area Function
-
-create_heat_map_outside_restricted <- function(shot_data, start_year, end_year = start_year){
-  
-  shot_data <- add_ranks(shot_data)
-  
-  shot_data <- shot_data %>% filter(shot_zone_basic != "Restricted Area")
-  
-  # Create court background
-
-  court_theme <- court_themes$black
-  court <- plot_court(court_theme = court_theme, use_short_three = F)
-  
-  # Filter data to include shots between start_year and end_year
-  
-  shot_data <- shot_data %>% filter(season_year >= start_year & season_year <= end_year)
-  
-  # Create player variable
-  
-  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
-    select(player_name) %>% distinct()
-  
-  # Create heat map
-  
-  heat_map <- court + 
-    stat_density_2d(data = shot_data, aes(x = loc_x, y = loc_y, fill = stat(density / max(density))), 
-                    geom = "raster", contour = F, interpolate = T, n = 200) + 
-    geom_path(data = court_points, aes(x = x, y = y, group = desc), color = court_theme$lines) + 
-    scale_fill_viridis_c("Shot Frequency", limits = c(0, 1), breaks = c(0, 1), option = "inferno") + 
-    ggtitle(paste(player, "Career Shots Heat Map \nOutside Restricted Area"), 
-            subtitle = paste(start_year, "-", end_year + 1)) + 
-    labs(caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
-    theme(legend.position = "none", 
-          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5), 
-          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
-          plot.caption = element_text(colour = "white", size = 9, hjust = 1))
-  
-  return(heat_map)
-}
-
-```
-
-<div class = "row">
-<div class = "col-md-6">
-```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10}
-
-create_heat_map(kobe_shots, 1996, 2015)
-
-```
-</div>
-
-<div class = "col-md-6">
-```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10}
-
-create_heat_map_outside_restricted(kobe_shots, 1996, 2015)
-
-```
-</div>
 </div>
 
 
@@ -589,7 +592,69 @@ kobe_by_zone_qtr_pps_bar
 
 ```{r, echo=F, warning=F, message=F}
 
-# By Opponent and Year
+# By Opponent
+
+kobe_by_opponent <- kobe_shots %>% 
+  mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0), 
+         opponent = as.character(ifelse(as.character(htm) == "LAL", as.character(vtm), as.character(htm)))) %>%
+  mutate(opponent = ifelse(opponent %in% c("BKN", "NJN"), "BKN", 
+                           ifelse(opponent %in% c("CHH", "NOH", "NOK", "NOP"), "NO", 
+                                  ifelse(opponent %in% c("SEA", "OKC"), "OKC", 
+                                         ifelse(opponent %in% c("MEM", "VAN"), "MEM", opponent))))) %>%
+  group_by(opponent) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_season = round(prop.table(total_shots), 4)) %>%
+  arrange(opponent)
+
+kobe_by_opponent %>% 
+  mutate(pct_of_season = scales::percent(pct_of_season, accuracy = 0.01)) %>%
+  rename(Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct, 
+         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
+  as.data.frame()
+
+# Color by Opponent
+
+opponent_colors <- c("ATL" = "red", "BKN" = "black", "BOS" = "green", "CHA" = "turquoise", "CHI" = "red", 
+                     "CLE" = "darkred", "DAL" = "dodgerblue", "DEN" = "gold", "DET" = "darkblue", "GSW" = "gold", 
+                     "HOU" = "red", "IND" = "gold", "LAC" = "red", "MEM" = "cyan", "MIA" = "firebrick", 
+                     "MIL" = "chartreuse4", "MIN" = "slateblue", "NO" = "steelblue", "NYK" = "orange", 
+                     "OKC" = "deepskyblue", "ORL" = "steelblue1", "PHI" = "red", "PHX" = "purple", "POR" = "red4", 
+                     "SAC" = "purple", "SAS" = "grey40", "TOR" = "purple", "UTA" = "slateblue4", "WAS" = "blue")
+
+# Overall PPS Bar
+
+kobe_by_opponent_pps_bar <- ggplot(kobe_by_opponent, aes(x = reorder(opponent, -pps), y = pps, fill = opponent)) + 
+  geom_col() + 
+  scale_fill_manual(values = opponent_colors) + 
+  ggtitle("Kobe Bryant Points per Shot by Opponent", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Opponent', y = 'Points per Shot', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'white'), 
+        legend.position = "none", 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5), 
+        axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+```{r, echo=F, warning=F, message=F}
+
+kobe_by_opponent_pps_bar
+
+```
+
+
+
+
+```{r, echo=F, warning=F, message=F}
+
+# Shots By Opponent and Year
 
 kobe_by_opponent_year <- kobe_shots %>% 
   mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0), 
@@ -613,16 +678,7 @@ kobe_by_opponent_year %>%
          `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
   as.data.frame()
 
-# Color by Opponent
-
-opponent_colors <- c("ATL" = "red", "BKN" = "black", "BOS" = "green", "CHA" = "turquoise", "CHI" = "red", 
-                     "CLE" = "darkred", "DAL" = "dodgerblue", "DEN" = "gold", "DET" = "darkblue", "GSW" = "gold", 
-                     "HOU" = "red", "IND" = "gold", "LAC" = "red", "MEM" = "cyan", "MIA" = "firebrick", 
-                     "MIL" = "chartreuse4", "MIN" = "slateblue", "NO" = "steelblue", "NYK" = "orange", 
-                     "OKC" = "deepskyblue", "ORL" = "steelblue1", "PHI" = "red", "PHX" = "purple", "POR" = "red4", 
-                     "SAC" = "purple", "SAS" = "grey40", "TOR" = "purple", "UTA" = "slateblue4", "WAS" = "blue")
-
-# PPS Bar
+# Yearly PPS Line
 
 kobe_by_opponent_year_pps_line <- ggplot(kobe_by_opponent_year, aes(x = season_year, y = pps, col = opponent)) + 
   geom_line() + 

@@ -127,7 +127,7 @@ create_shot_chart <- function(shot_data, start_year, end_year = start_year){
 ```
 
 
-```{r, echo=F, warning=F, message=F, fig.align='center'}
+```{r, echo=F, warning=F, message=F}
 
 create_shot_chart(kobe_shots, 1996, 2015)
 
@@ -318,7 +318,7 @@ create_heat_map_outside_restricted <- function(shot_data, start_year, end_year =
 
 <div class = "row">
 <div class = "col-md-6">
-```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10}
+```{r, echo=F, warning=F, message=F}
 
 create_heat_map(kobe_shots, 1996, 2015)
 
@@ -327,7 +327,7 @@ create_heat_map(kobe_shots, 1996, 2015)
 </div>
 
 <div class = "col-md-6">
-```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10}
+```{r, echo=F, warning=F, message=F}
 
 create_heat_map_outside_restricted(kobe_shots, 1996, 2015)
 

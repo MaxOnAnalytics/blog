@@ -499,7 +499,7 @@ kobe_by_zone_year_pps_bar <- ggplot(kobe_by_zone_year, aes(x = season_year, y = 
 ```
 
 <div class = "row">
-```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10, fig.height=5}
+```{r, echo=F, warning=F, message=F, fig.width=10, fig.height=5}
 
 kobe_by_zone_year_pct_bar
 
@@ -507,7 +507,7 @@ kobe_by_zone_year_pct_bar
 </div>
 
 <div class = "row">
-```{r, echo=F, warning=F, message=F, fig.align="center", fig.width=10, fig.height=5}
+```{r, echo=F, warning=F, message=F, fig.width=10, fig.height=5}
 
 kobe_by_zone_year_pps_bar
 
@@ -607,13 +607,13 @@ kobe_by_opponent <- kobe_shots %>%
             pps = mean(shot_made_numeric * shot_value), 
             total_shots = n()) %>%
   mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
-         pct_of_season = round(prop.table(total_shots), 4)) %>%
+         pct_of_career = round(prop.table(total_shots), 4)) %>%
   arrange(opponent)
 
 kobe_by_opponent %>% 
-  mutate(pct_of_season = scales::percent(pct_of_season, accuracy = 0.01)) %>%
+  mutate(pct_of_career = scales::percent(pct_of_career, accuracy = 0.01)) %>%
   rename(Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct, 
-         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
+         `Points per Shot` = pps, `Total Shots` = total_shots, `Percent of Career Shots` = pct_of_career) %>%
   as.data.frame()
 
 # Color by Opponent

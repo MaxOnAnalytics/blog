@@ -6,15 +6,24 @@ output:
     df_print: paged
 ---
 
-```{r setup, include=F}
-knitr::opts_chunk$set(echo = T)
+```{r read-settings, include=F, cache=F}
+# Read in global document settings
+knitr::read_chunk("analysis/doc_settings.R")
+```
+
+```{r knitr-opts-chunk, include=F}
+# Set chunk settings
+```
+
+```{r last-updated, echo=F, results='asis'}
+# Last Updated Date
 ```
 
 ![](assets/20200323/Kobe Bryant Picture.jpg)
 
 # Shot Charts and Gifs 
 
-```{r, include=F}
+```{r libraries, include=F}
 
 # Load libraries and source code to pull shot data and draw court from ballr package (by Todd Schneider)
 
@@ -37,7 +46,7 @@ source("./code/20200323/fetch_shots.R")
 ```
 
 
-```{r, eval=F, include=F}
+```{r read-shot-data, eval=F, include=F}
 
 # Get Kobe shots
 
@@ -56,16 +65,16 @@ write.csv(kobe_shots, "kobe_shots.csv", row.names = F)
 ```
 
 
-```{r, echo=F, warning=F, message=F}
+```{r read-shot-data-csv}
 
-# Plot all Kobe shots
+# Read CSV of shot data
 
 kobe_shots <- read.csv("./data/20200323/kobe_shots.csv")
 
 ```
 
 
-```{r, echo=F, warning=F, message=F}
+```{r shot-chart-function}
 
 # Rank games by game date
 
@@ -127,14 +136,14 @@ create_shot_chart <- function(shot_data, start_year, end_year = start_year){
 ```
 
 
-```{r, echo=F, warning=F, message=F}
+```{r full-shot-chart, echo=F, warning=F, message=F, eval=F}
 
 create_shot_chart(kobe_shots, 1996, 2015)
 
 ```
 
 
-```{r, echo=F, warning=F, message=F}
+```{r shot-gif-function}
 
 # Function to create gif of shots
 
@@ -189,7 +198,7 @@ create_shot_gif <- function(shot_data, start_year, end_year = start_year, gif_du
 ```
 
 
-```{r, eval=F, include=F}
+```{r create-shot-gifs, eval=F, include=F}
 
 system.time(create_shot_gif(kobe_shots, start_year = 1996, gif_duration = 90))
 system.time(create_shot_gif(kobe_shots, start_year = 2000, gif_duration = 90))
@@ -233,7 +242,7 @@ system.time(create_shot_gif(kobe_shots, start_year = 2015, gif_duration = 90))
 
 # Heat Maps
 
-```{r, echo=F, warning=F, message=F}
+```{r heat-map-functions}
 
 # Create Heat Map Function
 
@@ -318,7 +327,7 @@ create_heat_map_outside_restricted <- function(shot_data, start_year, end_year =
 
 <div class = "row">
 <div class = "col-md-6">
-```{r, echo=F, warning=F, message=F}
+```{r full-heat-map}
 
 create_heat_map(kobe_shots, 1996, 2015)
 
@@ -327,7 +336,7 @@ create_heat_map(kobe_shots, 1996, 2015)
 </div>
 
 <div class = "col-md-6">
-```{r, echo=F, warning=F, message=F}
+```{r heat-map-outside-restricted}
 
 create_heat_map_outside_restricted(kobe_shots, 1996, 2015)
 
@@ -339,7 +348,7 @@ create_heat_map_outside_restricted(kobe_shots, 1996, 2015)
 
 # Shot Breakdown - FG% vs EFG%
 
-```{r, echo=F, warning=F, message=F}
+```{r shot-breakdown}
 
 overall_pcts <- kobe_shots %>% mutate(flag3 = ifelse(shot_value == 3, 1, 0)) %>%
   summarize(fg_pct = mean(shot_made_numeric), 
@@ -389,7 +398,7 @@ kobe_pps_line <- ggplot(kobe_fg_pct, aes(x = shot_distance, y = pps)) +
 ```
 
 
-```{r, echo=F, warning=F, message=F}
+```{r overall-fg-pct-table}
 
 kobe_fg_pct_table <- kobe_fg_pct %>% rename(`Shot Distance (ft)` = shot_distance, `FG%` = fg_pct, 
                                                    `EFG%` = efg_pct, `Points per Shot` = pps, 
@@ -402,7 +411,7 @@ kobe_fg_pct_table
 
 <div class = "row">
 <div class = "col-md-6">
-```{r, echo=F, warning=F, message=F}
+```{r overall-fg-pct-line}
 
 kobe_fg_pct_line
 
@@ -410,7 +419,7 @@ kobe_fg_pct_line
 </div>
 
 <div class = "col-md-6">
-```{r, echo=F, warning=F, message=F}
+```{r overall-pps-line}
 
 kobe_pps_line
 
@@ -420,7 +429,7 @@ kobe_pps_line
 
 # Shots by Zone - Over the Course of a Career
 
-```{r, echo=F, warning=F, message=F}
+```{r shots-zone-career}
 
 # By Zone
 
@@ -444,7 +453,7 @@ kobe_by_zone %>%
 ```
 
 
-```{r, echo=F, warning=F, message=F}
+```{r shots-zone-year}
 
 # By Zone and Year
 
@@ -499,7 +508,7 @@ kobe_by_zone_year_pps_bar <- ggplot(kobe_by_zone_year, aes(x = season_year, y = 
 ```
 
 <div class = "row">
-```{r, echo=F, warning=F, message=F, fig.width=10, fig.height=5}
+```{r shots-zone-year-pct, fig.width=10, fig.height=5}
 
 kobe_by_zone_year_pct_bar
 
@@ -507,7 +516,7 @@ kobe_by_zone_year_pct_bar
 </div>
 
 <div class = "row">
-```{r, echo=F, warning=F, message=F, fig.width=10, fig.height=5}
+```{r shots-zone-year-pps, fig.width=10, fig.height=5}
 
 kobe_by_zone_year_pps_bar
 
@@ -517,7 +526,7 @@ kobe_by_zone_year_pps_bar
 
 # Shots by Zone - Over the Course of a Game
 
-```{r, echo=F, warning=F, message=F}
+```{r shots-zone-qtr}
 
 # By Zone and Quarter
 
@@ -571,7 +580,7 @@ kobe_by_zone_qtr_pps_bar <- ggplot(kobe_by_zone_qtr, aes(x = quarter, y = pps)) 
 
 <div class = "row">
 <div class = "col-md-6">
-```{r, echo=F, warning=F, message=F}
+```{r shots-zone-qtr-pct}
 
 kobe_by_zone_qtr_pct_bar
 
@@ -579,7 +588,7 @@ kobe_by_zone_qtr_pct_bar
 </div>
 
 <div class = "col-md-6">
-```{r, echo=F, warning=F, message=F}
+```{r shots-zone-qtr-pps}
 
 kobe_by_zone_qtr_pps_bar
 
@@ -590,7 +599,7 @@ kobe_by_zone_qtr_pps_bar
 
 # Shots by Opponent
 
-```{r, echo=F, warning=F, message=F}
+```{r shots-opponent}
 
 # By Opponent
 
@@ -643,7 +652,7 @@ kobe_by_opponent_pps_bar <- ggplot(kobe_by_opponent, aes(x = reorder(opponent, -
 ```
 
 
-```{r, echo=F, warning=F, message=F}
+```{r opponent-pps}
 
 kobe_by_opponent_pps_bar
 
@@ -652,7 +661,7 @@ kobe_by_opponent_pps_bar
 
 
 
-```{r, echo=F, warning=F, message=F}
+```{r shots-opponent-year}
 
 # Shots By Opponent and Year
 
@@ -698,7 +707,7 @@ kobe_by_opponent_year_pps_line <- ggplot(kobe_by_opponent_year, aes(x = season_y
 ```
 
 
-```{r, echo=F, warning=F, message=F}
+```{r opponent-year-pps}
 
 kobe_by_opponent_year_pps_line
 

@@ -1,14 +1,12 @@
 ---
 title: "Kobe - Looking Back at a Laker Legend"
 date: "March 23, 2020"
-output:
-  html_document:
-    df_print: paged
+output: workflowr::wflow_html
 ---
 
 ```{r read-settings, include=F, cache=F}
 # Read in global document settings
-knitr::read_chunk("analysis/doc_settings.R")
+knitr::read_chunk("./analysis/doc_settings.R")
 ```
 
 ```{r knitr-opts-chunk, include=F}
@@ -37,7 +35,6 @@ library(httr)
 library(jsonlite)
 library(scales)
 
-#source("helpers.R")
 source("./code/20200323/court_themes.R")
 source("./code/20200323/plot_court.R")
 source("./code/20200323/players_data.R")
@@ -207,8 +204,6 @@ system.time(create_shot_gif(kobe_shots, start_year = 2015, gif_duration = 90))
 
 ```
 
-
-## Create GIPHY links for each Kobe year
 
 <div class = "row">
 <div class = "col-md-6">

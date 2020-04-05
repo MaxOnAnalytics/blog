@@ -1,5 +1,7 @@
 name: MaxOn Analytics
 output_dir: ../docs
+include: [".nojekyll"]
+exclude: ["include"]
 navbar:
   title: MaxOn Analytics
   left:

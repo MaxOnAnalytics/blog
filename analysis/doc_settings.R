@@ -8,7 +8,8 @@ knitr::opts_chunk$set(
   comment = NA,
   fig.align = "center",
   tidy = F,
-  fig.path = paste0("./docs/figure/", knitr::current_input(), "/")
+  #fig.path = paste0("docs/figure/", knitr::current_input(), "/")
+  fig.path = paste0(file.path("figure", knitr::current_input()), .Platform$file.sep)
 )
 
 # ---- last-updated ----

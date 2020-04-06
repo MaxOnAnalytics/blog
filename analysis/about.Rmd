@@ -8,11 +8,11 @@ editor_options:
   chunk_output_type: console
 ---
 
-<p>
+<div align="center">
 
-![](https://media-exp1.licdn.com/dms/image/C4E03AQHfNcu9Tvk5DA/profile-displayphoto-shrink_200_200/0?e=1591228800&v=beta&t=jK9QpM8ozIS94H4dycj3v_cEy9PnYQjp1ooce24qwUQ)
+<img src="assets/Bryant Molloy LinkedIn Picture.jpeg">
 
-</p>
+</div>
 
 My name is Bryant Molloy, and I am a Data Analyst at the IRONMAN Group. I graduated from the University of Connecticut with a B.S.E. degree in Computer Science & Engineering in 2017 and went on to earn a Master of Science in Business Analytics degree from the University of Miami in 2018. During this time, I had multiple analytics internships in sports, at both the team level with the Miami Marlins and at the company level with Zensah.
 

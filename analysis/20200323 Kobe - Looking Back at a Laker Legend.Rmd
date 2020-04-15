@@ -133,7 +133,7 @@ create_shot_chart <- function(shot_data, start_year, end_year = start_year){
 ```
 
 
-```{r full-shot-chart, echo=F, warning=F, message=F, eval=F}
+```{r full-shot-chart, eval=F}
 
 create_shot_chart(kobe_shots, 1996, 2015)
 
@@ -503,7 +503,7 @@ kobe_by_zone_year_pps_bar <- ggplot(kobe_by_zone_year, aes(x = season_year, y = 
 ```
 
 <div class = "row">
-```{r shots-zone-year-pct, fig.width=10, fig.height=5}
+```{r shots-zone-year-pct, fig.width=10, fig.height=8}
 
 kobe_by_zone_year_pct_bar
 
@@ -511,7 +511,7 @@ kobe_by_zone_year_pct_bar
 </div>
 
 <div class = "row">
-```{r shots-zone-year-pps, fig.width=10, fig.height=5}
+```{r shots-zone-year-pps, fig.width=10, fig.height=8}
 
 kobe_by_zone_year_pps_bar
 
@@ -654,8 +654,6 @@ kobe_by_opponent_pps_bar
 ```
 
 
-
-
 ```{r shots-opponent-year}
 
 # Shots By Opponent and Year
@@ -707,6 +705,21 @@ kobe_by_opponent_year_pps_line <- ggplot(kobe_by_opponent_year, aes(x = season_y
 kobe_by_opponent_year_pps_line
 
 ```
+
+
+# Winning Time
+
+```{r winning-time-heatmap}
+
+winning_time_shots <- kobe_shots %>%
+  filter((period == 4 & minutes_remaining < 5) | period > 4)
+
+create_heat_map_outside_restricted(winning_time_shots, 1996, 2015)
+
+```
+
+
+
 
 
 

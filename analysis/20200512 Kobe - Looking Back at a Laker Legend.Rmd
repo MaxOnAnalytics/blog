@@ -1,0 +1,968 @@
+---
+title: "Kobe - Looking Back at a Laker Legend"
+date: "May 12, 2020"
+output: workflowr::wflow_html
+---
+
+```{r read-settings, include=F, cache=F}
+# Read in global document settings
+knitr::read_chunk("./analysis/doc_settings.R")
+```
+
+```{r knitr-opts-chunk, include=F}
+# Set chunk settings
+```
+
+```{r last-updated, echo=F, results='asis'}
+# Last Updated Date
+```
+
+![](assets/20200512/Kobe Bryant Picture.jpg)
+
+From entering the public eye as a high school phenom declaring for the NBA Draft to writing and narrating an Oscar-winning short film "Dear Basketball" just one year after retiring - not to mention a 20 year NBA career in between that many consider to be one of the 10 greatest ever - Kobe Bryant was always larger than life. He was an 18-time All Star, 15-time All-NBA, 12-time All-Defensive team, 2-time scoring champion, the 2007-2008 regular season MVP, and, most importantly to him, a 5-time NBA champion. You could have separated his career into two players - the first half in which he wore #8 and the second half in which he wore #24 - and both would have accomplished enough to reach the Hall of Fame on their own. 
+
+On January 26, 2020, Kobe, his daughter Gianna, and seven others tragically lost their lives in a helicopter crash in Calabasas, California. In the aftermath of this horrible loss, we have seen countless tributes to Kobe the player and Kobe the person, and it is clear how many lives he impacted and how many people respected and admired him. There have been so many clips of his greatest moments making the rounds - the high-flying dunks as a teenager in his first couple years in the league, the 81 point explosion against the Toronto Raptors in 2006, and the "Mamba Out" game, in which he dropped 60 points in the final game of his career against the Utah Jazz in 2016. To reflect on Kobe's career even further, I decided to dig into his regular season shot data from 1996 to 2016 to research how his game evolved as his career went on, and to provide a quick tool at the end of the post that can be used to look back at any Kobe Bryant performance through data visualization. 
+
+
+# Shot Charts and Gifs 
+
+Kobe Bryant took 26,200 shots over the course of his career during the regular season. He shot 44.7% from the field, 32.9% from 3, and scored 33,643 points for an average of 25.0 per game. With some help from Todd Schneider's [BallR](https://github.com/toddwschneider/ballr) package on Github, we can pull raw shot data from [stats.nba.com](https://stats.nba.com) for 26,198 of the 26,200 shots, including shot coordinates, shot zone classification, opponent, game date, quarter, and time left on the clock. This gives us plenty of information to explore questions such as where on the court Kobe took most of his shots, where on the court Kobe was most efficient, which opponents Kobe was most efficient against, and how Kobe performed down the stretch of games from the field. 
+
+One thing to note before getting started - while the NBA has shot location data dating back to the 1996-1997 season, it is generally viewed as mostly reliable from 2000 forward, due to some misclassifications for shot zones in early tracking years. Luckily, Kobe's first few seasons were relatively low volume compared to the rest of his career, so very few shots in this dataset will be affected, but it is something to keep in mind when digging into data from almost 25 years ago. 
+
+We can begin analyzing the shot data using maybe the most appealing method of data visualization in basketball - shot charts. Using the x and y coordinates of each shot, we can plot each shot as a point on a court, with green O's representing makes and red X's representing misses. Below is a shot chart consisting of all 26,198 shots in our dataset. 
+
+
+```{r libraries, include=F}
+
+# Load libraries and source code to pull shot data and draw court from ballr package (by Todd Schneider)
+
+library(shiny)
+library(ggplot2)
+library(plotly)
+library(gganimate)
+library(hexbin)
+library(dplyr)
+library(httr)
+library(jsonlite)
+library(scales)
+
+source("./code/20200512/court_themes.R")
+source("./code/20200512/plot_court.R")
+source("./code/20200512/players_data.R")
+source("./code/20200512/fetch_shots.R")
+
+```
+
+
+```{r read-shot-data, eval=F, include=F}
+
+# Get Kobe shots
+
+kobe <- find_player_by_name("Kobe Bryant")
+seasons <- season_strings[as.character(1996:2015)]
+
+kobe_shots <- bind_rows(lapply(seasons, function(season) {
+  fetch_shots_by_player_id_and_season(kobe$person_id, season)$player %>%
+    mutate(season = season)
+}))
+
+kobe_shots
+
+write.csv(kobe_shots, "kobe_shots.csv", row.names = F)
+
+```
+
+
+```{r read-shot-data-csv}
+
+# Read CSV of shot data
+
+kobe_shots <- read.csv("./data/20200512/kobe_shots.csv")
+
+```
+
+
+```{r shot-chart-function}
+
+# Rank games by game date
+
+add_ranks <- function(shot_data){
+  
+  game_dates <- shot_data %>% select(game_date) %>% 
+    mutate(game_date = as.Date(game_date)) %>%
+    distinct() %>%
+    mutate(game_number = rank(game_date, ties.method = "min")) %>%
+    arrange(game_date)
+
+  shot_data <- shot_data %>% mutate(game_date = as.Date(game_date)) %>%
+    inner_join(game_dates, by = "game_date") %>%
+    mutate(shot_number = rank(order(game_date, period, desc(minutes_remaining), desc(seconds_remaining)), 
+                              ties.method = "min"), 
+           season_year = as.numeric(substr(season, 1, 4)))
+  
+  return(shot_data)
+}
+
+# Create Shot Chart Function
+
+create_shot_chart <- function(shot_data, start_year, end_year = start_year, subtitle = ""){
+  
+  shot_data <- add_ranks(shot_data)
+  
+  # Create court background
+
+  court_theme <- court_themes$black
+  court <- plot_court(court_theme = court_theme, use_short_three = F)
+  
+  # Filter data to include shots between start_year and end_year
+  
+  shot_data <- shot_data %>% filter(season_year >= start_year & season_year <= end_year)
+  
+  # Create player variable
+  
+  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
+    select(player_name) %>% distinct()
+  
+  # Create shot chart
+  
+  shot_chart <- court + 
+    geom_point(data = shot_data, aes(x = loc_x, y = loc_y, color = shot_made_flag, shape = shot_made_flag),
+      alpha = 0.5, size = 2) + 
+    scale_color_manual("", values = c(made = court_theme$made, missed = court_theme$missed)) + 
+    scale_shape_manual("", values = c(made = 1, missed = 4)) + 
+    ggtitle(paste(player, "Career Shots"), 
+            subtitle = paste(start_year, "-", end_year + 1, "\n", subtitle)) + 
+    labs(caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+    theme(legend.position = "none", 
+          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5), 
+          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
+          plot.caption = element_text(colour = "white", size = 9, hjust = 1))
+  
+  return(shot_chart)
+}
+
+```
+
+
+```{r full-shot-chart}
+
+create_shot_chart(kobe_shots, 1996, 2015)
+
+```
+
+
+Now, while this chart displays a cool-looking collage of Christmas colors printed onto a court, it doesn't really provide any insight into where or how well Kobe shot the ball, other than the fact that he didn't take many shots beyond 30 feet. We'll have to look at the data at a more granular level, not just all at once, in order to uncover interesting information or trends from Kobe's shooting habits. Shot charts are particularly useful when analyzing individual games, which we will revisit later on in this post. 
+
+Before moving on to heat maps and charts, another fun way to visualize shot data is through GIFs. Because we have game dates and time stamps for every shot in the data, we can create animations that sequentially plot each shot on the court in one view. Below are GIFs visualizing all of Kobe's shots from four of his most memorable seasons - his rookie season in 1996-1997, the second of three straight championship seasons in 2000-2001, his MVP season of 2007-2008, and his farewell tour in 2015-2016. 
+
+
+```{r shot-gif-function}
+
+# Function to create gif of shots
+
+create_shot_gif <- function(shot_data, start_year, end_year = start_year, gif_duration){
+  
+  shot_data <- add_ranks(shot_data)
+  
+  # Create court background
+
+  court_theme <- court_themes$black
+  
+  if(as.numeric(end_year) < 1997){
+    court <- plot_court(court_theme = court_theme, use_short_three = T)
+  }else
+    court <- plot_court(court_theme = court_theme, use_short_three = F)
+  
+  # Filter data to include shots between start_year and end_year
+  
+  shot_data <- shot_data %>% filter(season_year >= start_year & season_year <= end_year)
+  
+  # Get player and num_shots variables
+  
+  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
+    select(player_name) %>% distinct()
+  
+  num_shots <- nrow(shot_data)
+  
+  # Create shot chart gif
+  
+  shot_gif <- court +
+    geom_point(data = shot_data, aes(x = loc_x, y = loc_y, color = shot_made_flag, shape = shot_made_flag),
+               alpha = 0.75, size = 2.5) +
+    scale_color_manual("", values = c(made = court_theme$made, missed = court_theme$missed)) +
+    scale_shape_manual("", values = c(made = 1, missed = 4)) +
+    ggtitle(paste(player, "Shots:", start_year, "-", end_year + 1)) +
+    theme(legend.position = "none",
+          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5),
+          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
+          plot.caption = element_text(colour = "white", size = 9, hjust = 1)) +
+    transition_states(states = shot_number, transition_length = 1, state_length = 2, wrap = F) +
+    labs(subtitle = "Through Shot {closest_state}", 
+         caption = "Data: stats.nba.com \n Created by: Bryant Molloy") +
+    shadow_mark()
+
+  shot_animation <- animate(shot_gif, duration = gif_duration, nframes = num_shots*2)
+  anim_save(paste0(player, " Shots ", start_year, "-", end_year + 1, ".gif"), animation = shot_animation)
+  
+  return(shot_animation)
+  
+}
+
+```
+
+
+```{r create-shot-gifs, eval=F, include=F}
+
+system.time(create_shot_gif(kobe_shots, start_year = 1996, gif_duration = 90))
+system.time(create_shot_gif(kobe_shots, start_year = 2000, gif_duration = 90))
+system.time(create_shot_gif(kobe_shots, start_year = 2007, gif_duration = 90))
+system.time(create_shot_gif(kobe_shots, start_year = 2015, gif_duration = 90))
+
+```
+
+
+<div class = "row">
+<div class = "col-md-6">
+
+![](assets/20200512/Kobe Bryant Shots 1996-1997.gif)
+
+</div>
+
+<div class = "col-md-6">
+
+![](assets/20200512/Kobe Bryant Shots 2000-2001.gif)
+
+</div>
+</div>
+
+<div class = "row">
+<div class = "col-md-6">
+
+![](assets/20200512/Kobe Bryant Shots 2007-2008.gif)
+
+</div>
+
+<div class = "col-md-6">
+
+![](assets/20200512/Kobe Bryant Shots 2015-2016.gif)
+
+</div>
+</div>
+
+
+
+# Heat Maps
+
+An aesthetically pleasing way to learn through shot data similar to a shot chart is a heat map. A heat map is a data visualization technique that uses variations in color intensity to represent magnitude. They are often used in weather forecasts to illustrate where high or low temperatures vary from region to region, and they can be used in a similar way on a plot of a basketball court to illustrate shot frequency, or how often a player shoots from one location on the floor relative to others. 
+
+```{r heat-map-functions}
+
+# Create Heat Map Function
+
+create_heat_map <- function(shot_data, start_year, end_year = start_year, subtitle = ""){
+  
+  shot_data <- add_ranks(shot_data)
+  
+  # Create court background
+
+  court_theme <- court_themes$black
+  court <- plot_court(court_theme = court_theme, use_short_three = F)
+  
+  # Filter data to include shots between start_year and end_year
+  
+  shot_data <- shot_data %>% filter(season_year >= start_year & season_year <= end_year)
+  
+  # Create player variable
+  
+  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
+    select(player_name) %>% distinct()
+  
+  # Create heat map
+  
+  heat_map <- court + 
+    stat_density_2d(data = shot_data, aes(x = loc_x, y = loc_y, fill = stat(density / max(density))), 
+                    geom = "raster", contour = F, interpolate = T, n = 250) + 
+    geom_path(data = court_points, aes(x = x, y = y, group = desc), color = court_theme$lines) + 
+    scale_fill_viridis_c("Shot Frequency", limits = c(0, 1), breaks = c(0, 1), option = "inferno") + 
+    ggtitle(paste(player, "Career Shots Heat Map"), 
+            subtitle = paste(start_year, "-", end_year + 1, "\n", subtitle)) + 
+    labs(caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+    theme(legend.position = "none", 
+          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5), 
+          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
+          plot.caption = element_text(colour = "white", size = 9, hjust = 1))
+  
+  return(heat_map)
+}
+
+
+# Create Heat Map Outside Restricted Area Function
+
+create_heat_map_outside_restricted <- function(shot_data, start_year, end_year = start_year, subtitle = ""){
+  
+  shot_data <- add_ranks(shot_data)
+  
+  shot_data <- shot_data %>% filter(shot_zone_basic != "Restricted Area")
+  
+  # Create court background
+
+  court_theme <- court_themes$black
+  court <- plot_court(court_theme = court_theme, use_short_three = F)
+  
+  # Filter data to include shots between start_year and end_year
+  
+  shot_data <- shot_data %>% filter(season_year >= start_year & season_year <= end_year)
+  
+  # Create player variable
+  
+  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
+    select(player_name) %>% distinct()
+  
+  # Create heat map
+  
+  heat_map <- court + 
+    stat_density_2d(data = shot_data, aes(x = loc_x, y = loc_y, fill = stat(density / max(density))), 
+                    geom = "raster", contour = F, interpolate = T, n = 250) + 
+    geom_path(data = court_points, aes(x = x, y = y, group = desc), color = court_theme$lines) + 
+    scale_fill_viridis_c("Shot Frequency", limits = c(0, 1), breaks = c(0, 1), option = "inferno") + 
+    ggtitle(paste(player, "Career Shots Heat Map \nOutside Restricted Area"), 
+            subtitle = paste(start_year, "-", end_year + 1, "\n", subtitle)) + 
+    labs(caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+    theme(legend.position = "none", 
+          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5), 
+          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
+          plot.caption = element_text(colour = "white", size = 9, hjust = 1))
+  
+  return(heat_map)
+}
+
+```
+
+First, let's try creating a heat map of Kobe's career shots using the entire court. 
+
+<div class = "row">
+```{r full-heat-map}
+
+create_heat_map(kobe_shots, 1996, 2015)
+
+```
+
+</div>
+
+
+Unfortunately, this map isn't very informative. We only get one high frequency location, right around the rim in the restricted area. This is because, for all areas of the court that are the size of the restricted area, Kobe took by far the most shots right at the rim. While this makes sense intuitively, given that layups are the most efficient shots in basketball and Kobe made a living getting to the basket and finishing over and through defenders, it doesn't explain anything to us about his shot profile. 
+
+However, if we remove shots from the restricted area from the data and recreate the heat map, we get a much more impactful result. 
+
+
+<div class = "row">
+```{r heat-map-outside-restricted}
+
+heat_map_outside_restricted <- create_heat_map_outside_restricted(kobe_shots, 1996, 2015)
+
+heat_map_outside_restricted
+
+```
+
+</div>
+
+This time, we can definitively see where Kobe loved to operate. He clearly favored working on the right side of the floor as evidenced by the higher intensity color, with the right elbow (often for pull-up jumpers) and right short corner (usually utilized when posting or facing up) being his two go-to shot locations. Interestingly enough, the two locations he shot the most 3s from were the right and left slots, and he rarely took 3s from below the break or in the corners. Similar to many ball-dominant scorers, Kobe often controlled the ball above the break and would either back his defender down or be fed an entry pass to the high post or short corner, leaving few opportunities for corner 3s and resulting in the main hot spots shown above.
+
+
+# Shot Breakdown - FG% vs EFG%
+
+Another cool aspect of this data is that we can determine how Kobe's efficiency changed as he moved further away from the basket, given that we know shot distance in feet. Two metrics that measure shooting efficiency differently are field goal percentage (FG%) and effective field goal percentage (EFG%). 
+
+FG%, defined as the number of field goals made divided by the number of field goals attempted, has been known since the earliest days of the NBA, and, up until the age of analytics in basketball, was one of the few statistics used to determine efficiency. However, FG% treats both 2-pointers and 3-pointers the same in its calculation and doesn't take into account the difference in point value between the two types of shots. For example, if Player A takes 100 jumpshots from the elbow and makes 40 of them, they will have a FG% of 40%, with a total of 80 points. Meanwhile, if Player B takes 100 3's and makes 40 of them, they will also have a FG% of 40%, but they will have scored 120 points, a 50% increase over Player A (of course, since 3 is 50% greater than 2). 
+
+Luckily, EFG% takes the point difference between 2's and 3's into account, and is defined below.
+
+$$eFG\% = \frac {FG + (0.5 * 3FG)} {FGA}$$
+
+By multiplying EFG% by 2, we can get points per shot, which is important in determining how many points a player scores on average when they shoot the ball from a given location. 
+
+Below is a table showing the FG%, EFG%, Points per Shot (PPS), Total Shots, and Percent of Total Shots Kobe took from a given distance away from the rim, from 0 feet to 29 feet. The first graph shows how Kobe's FG% and EFG% varied as he moved further from the rim, and the second graph shows the same for PPS. 
+
+```{r shot-breakdown}
+
+overall_pcts <- kobe_shots %>% mutate(flag3 = ifelse(shot_value == 3, 1, 0)) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag))
+
+fg_pct_number <- overall_pcts %>% select(fg_pct) %>% as.numeric()
+efg_pct_number <- overall_pcts %>% select(efg_pct) %>% as.numeric()
+
+kobe_fg_pct <- kobe_shots %>% mutate(flag3 = ifelse(shot_value == 3, 1, 0)) %>%
+  group_by(shot_distance) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_total = round(total_shots / sum(total_shots), 4)) %>%
+  mutate(pct_of_total = scales::percent(pct_of_total, accuracy = 0.01)) %>%
+  filter(shot_distance <= 29) %>%
+  arrange(shot_distance)
+
+kobe_fg_pct_line <- ggplot(kobe_fg_pct, aes(x = shot_distance, y = fg_pct, colour = "FG%")) + 
+  geom_line(size = 1.5) + 
+  geom_line(aes(x = shot_distance, y = efg_pct, colour = "EFG%"), size = 1.5) + 
+  scale_color_manual(values = c("purple", "black")) + 
+  scale_y_continuous(limits = c(0, 0.8), labels = scales::percent_format(accuracy = 1)) + 
+  ggtitle("Kobe Bryant Career Field Goal/Effective Field Goal \n Percentage by Shot Distance", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Shot Distance (in feet)', y = 'Percentage', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'yellow'), 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5)) + 
+  guides(col = guide_legend(title = "Shooting Metric"))
+
+kobe_pps_line <- ggplot(kobe_fg_pct, aes(x = shot_distance, y = pps)) + 
+  geom_line(col = 'purple', size = 1.5) + 
+  scale_color_manual(values = c("purple")) + 
+  scale_y_continuous(limits = c(0, 1.6)) + 
+  ggtitle("Kobe Bryant Career Points per Shot \n by Shot Distance", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Shot Distance (in feet)', y = 'Points per Shot', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'yellow'), 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5))
+
+```
+
+
+```{r overall-fg-pct-table}
+
+kobe_fg_pct_table <- kobe_fg_pct %>% rename(`Shot Distance (ft)` = shot_distance, `FG%` = fg_pct, 
+                                                   `EFG%` = efg_pct, `PPS` = pps, 
+                                                   `Total Shots` = total_shots, 
+                                                   `Percent of Total Shots` = pct_of_total) %>% as.data.frame()
+kobe_fg_pct_table
+
+```
+
+
+<div class = "row">
+<div class = "col-md-6">
+```{r overall-fg-pct-line}
+
+kobe_fg_pct_line
+
+```
+</div>
+
+<div class = "col-md-6">
+```{r overall-pps-line}
+
+kobe_pps_line
+
+```
+</div>
+</div>
+
+There are a couple key conceptual points to be made from the two graphs. In the FG%/EFG% by Shot Distance chart, the lines for FG% and EFG% are the exact same up until 22 feet, when the 3 point line is first reached. However, once we reach 22 feet, FG% begins to drop steadily, while EFG% suddenly jumps. We see a peak in EFG% at 23-25 feet, before a slow decline at 26-29 feet. Within 2-point range, FG% can be used the same as EFG% to determine efficiency, but EFG% must be used to account for efficiency from the 3-point line at a points per shot basis. This is illustrated by the Point per Shot chart, which follows the exact same pattern as the EFG% line. 
+
+Using either the EFG% line or the Points per Shot line, we can clearly see that Kobe was most efficient on a per shot basis from within 2 feet of the rim, with a PPS of 1.28 at 0 feet away, 1.35 at 1 foot away, and 1.10 at 2 feet away. The only other distances where Kobe scored greater than 1 PPS were 23, 24, and 25 feet from the rim. This supports analytical evidence that layups and 3's are the most efficient shots in basketball, and that on average, those are the attempts that players and teams should be trying to maximize. 
+
+This position is not universally valid, however. Down the stretch of close games, possessions are limited, and teams tighten their help defense around the rim. When a team is down by 1 with 5 seconds left, maximizing PPS is not nearly as important as maximizing FG%, since scoring either a 2 or a 3 will give that team the lead and have nearly the same impact on the game. Making the shot is what matters most in this scenario, and while a mid-range jumper may not be the most efficient shot in the long run, it could very well be the best option a team has in a given possession to maximize their chances of winning, especially during crunch time. So, even though Kobe had a worse PPS from 16-20 feet than he did from 21-25 feet for his career, that 16-20 foot mid-range jumper could be considered a slightly better shot than a 3 down the stretch of games, and the most optimal shot choice to maximize chances of winning is usually dependent on time and score. 
+
+
+# Shots by Zone
+
+Classifying shots in terms of their distance from the rim isn't the most intuitive method; an 18-foot jumper and a 19-foot jumper are almost indistinguishable in real time. Rather, it is more natural to group shots together by their general area on the court. The NBA does this in their shot data using 7 distinct zones: Above the Break 3, Backcourt, In The Paint (Non-Restricted Area), Left Corner 3, Mid-Range, Restricted Area, and Right Corner 3. 
+
+Below are Kobe's career metrics by shot zone, including FG%, EFG%, PPS, Total Shots, and Percent of Total Shots. 
+
+```{r shots-zone-career}
+
+# By Zone
+
+kobe_by_zone <- kobe_shots %>% 
+  mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0)) %>%
+  group_by(shot_zone_basic) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_shots = round(prop.table(total_shots), 4)) %>%
+  arrange(shot_zone_basic)
+
+kobe_by_zone %>% 
+  mutate(pct_of_shots = scales::percent(pct_of_shots, accuracy = 0.01)) %>%
+  rename(`Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct, 
+         `PPS` = pps, `Total Shots` = total_shots, `Percent of Total Shots` = pct_of_shots) %>%
+  as.data.frame()
+
+```
+
+It's clear that this is not a shot profile from a current Houston Rocket, as Kobe took by far the highest percentage of his total shots (41.1%) from Mid-Range, even though his PPS from Mid-Range was his lowest (0.815 PPS), outside of shots from the backcourt. We again see that he took very few corner 3s (0.93% of shots from the left corner and 1.29% of shots from the right corner), and his two most efficient zones in terms of high frequency shots were the Restricted Area (1.248 PPS) and the Above the Break 3 (0.991 PPS). 
+
+If his career were shifted 10 years into the future, we can imagine the percentage of shots taken from Mid-Range and the Above the Break 3 likely flipping to match the rest of the league, and his overall efficiency may have benefited from it. In the 2009-2010 season, the Orlando Magic, one of the original analytics darlings who surrounded Dwight Howard with shooters like Rashard Lewis and J.J. Redick around the perimeter, were last in the NBA with 17.5 Mid-Range field goal attempts per game. In the 2019-2020 season, that number would rank second in the league, only behind the San Antonio Spurs' 22.2 Mid-Range attempts per game as of today. This massive shift in offensive philosophy in just ten years shows how much we have learned about the game of basketball and how much the game has changed since Kobe's prime, but it is still interesting to look back at the manner in which Kobe dominated his era. 
+
+Line graphs can tell us how Kobe's shot profile changed as his career went on. Because he took so few of his shots from the corners and backcourt, we can remove those zones for simplicity and only include Above the Break 3, In The Paint (Non-RA), Mid-Range, and Restricted Area. This time, we'll look at both the percentage of his total shots he took in each zone over time and his PPS by zone over time, with a few quick bullet points below each graph outlining insights. The year on the x-axis corresponds with the start year of each season (2000 represents the 2000-01 season). 
+
+```{r shots-zone-year}
+
+# By Zone and Year
+
+kobe_by_zone_year <- kobe_shots %>% 
+  mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0)) %>%
+  group_by(season_year, shot_zone_basic) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_season = round(prop.table(total_shots), 4)) %>%
+  arrange(shot_zone_basic, season_year) %>%
+  filter(shot_zone_basic %in% c("Above the Break 3", "In The Paint (Non-RA)", "Mid-Range", "Restricted Area"))
+
+# kobe_by_zone_year %>%
+#   mutate(pct_of_season = scales::percent(pct_of_season, accuracy = 0.01)) %>%
+#   rename(Season = season_year, `Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct,
+#          `PPS` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
+#   as.data.frame()
+
+# Percentage of Shots Line
+
+kobe_by_zone_year_pct_line <- ggplot(kobe_by_zone_year, aes(x = season_year, y = pct_of_season, 
+                                                            col = shot_zone_basic)) + 
+  geom_line(size = 1.5) + 
+  scale_y_continuous(limits = c(0, 0.5), labels = scales::percent_format(accuracy = 1)) + 
+  scale_x_continuous(limits = c(1995, 2016), breaks = c(1996, 2000, 2004, 2008, 2012, 2016)) + 
+  ggtitle("Kobe Bryant Percentage of Shots \n by Zone in Each Season", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Season', y = 'Percentage of Season Shots', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'yellow'), 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5)) + 
+  guides(col = guide_legend(title = "Shot Zone"))
+
+# PPS Line
+
+kobe_by_zone_year_pps_line <- ggplot(kobe_by_zone_year, aes(x = season_year, y = pps, 
+                                                            col = shot_zone_basic)) + 
+  geom_line(size = 1.5) + 
+  scale_y_continuous(limits = c(0, 1.6)) + 
+  scale_x_continuous(limits = c(1995, 2016), breaks = c(1996, 2000, 2004, 2008, 2012, 2016)) + 
+  ggtitle("Kobe Bryant Points per Shot \n by Zone in Each Season", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Season', y = 'Points per Shot', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'yellow'), 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5)) + 
+  guides(col = guide_legend(title = "Shot Zone"))
+
+```
+
+<div class = "row">
+```{r shots-zone-year-pct}
+
+kobe_by_zone_year_pct_line
+
+```
+</div>
+
+
+* The percentage of total shots Kobe took from Mid-Range remained mostly consistent as his career went on and especially during his prime, making up between 35% and 45% of his total shots every season from 2003-2004 to 2015-2016 after peaking during the 2001-2002 (49.2%) and 2002-2003 (47.7%) seasons. 
+
+* There is a general downward trend for percentage of shots from the Restricted Area as his career progresses. This can be attributed in part to both improved shooting ability from the outside as well as a transition to a more well-rounded game as he grew older and took on a greater role in the Lakers offense. Diminishing athleticism may have also played a role in this trend, as his four seasons with the lowest percentage of total shots from the Restricted Area all occurred after 2010. 
+
+
+<div class = "row">
+```{r shots-zone-year-pps}
+
+kobe_by_zone_year_pps_line
+
+```
+</div>
+
+* Restricted Area was consistently Kobe's most efficient shot zone throughout his career, and some of his most efficient Restricted Area seasons were later in his career (1.31 PPS in 2008-09, 1.30 PPS in 2011-12, 1.31 PPS in 2012-13). 
+
+* The 2013-2014 season data can be largely ignored, as Kobe only played in 6 games due to a knee injury, and the large spike in efficiency in the Restricted Area that year can be attributed to a small sample size. 
+
+* Kobe's MVP season in 2007-08 - shown as 2007 in the graph - saw rises in efficiency in the Above the Break 3 (1.10 PPS), In The Paint (Non-RA) (1.03 PPS), and Restricted Area (1.27 PPS) zones compared to the prior four seasons. Meanwhile, it was actually one of his worst seasons efficiency wise from Mid-Range (0.78 PPS), as he surpassed his 2007-08 PPS from mid-range every year afterwards up until the 2014-15 season. It likely was not a coincidence that Kobe's only MVP season coincided with a decline in mid-range volume along with improved efficiency in the areas of the court that result in a higher PPS. 
+
+
+# Shots by Quarter
+
+Now that we've taken a look at how Kobe's shot profile changed over the course of his career, we can get even more granular and look into how his shot profile changed over the course of an average game by visualizing this data by quarter. In this breakdown, we'll group all overtime periods into one "OT" category for simplicity, and we'll create faceted charts to show how percentage of shots taken and points per shot changes by quarter for each major shot zone, with some insights below. 
+
+```{r shots-zone-qtr}
+
+# By Zone and Quarter
+
+kobe_by_zone_qtr <- kobe_shots %>% 
+  mutate(flag3 = ifelse(shot_value == 3, 1, 0), quarter = ifelse(period <= 4, as.factor(period), "OT")) %>%
+  group_by(quarter, shot_zone_basic) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_qtr = round(prop.table(total_shots), 4)) %>%
+  arrange(quarter, shot_zone_basic) %>%
+  filter(shot_zone_basic %in% c("Above the Break 3", "In The Paint (Non-RA)", "Mid-Range", "Restricted Area"))
+
+# kobe_by_zone_qtr %>%
+#   mutate(pct_of_qtr = scales::percent(pct_of_qtr, accuracy = 0.01)) %>%
+#   rename(Quarter = quarter, `Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct, `PPS` = pps,
+#          `Total Shots` = total_shots, `Percent of Quarter Shots` = pct_of_qtr) %>%
+#   as.data.frame()
+
+# Percent of Shots Bar
+
+kobe_by_zone_qtr_pct_bar <- ggplot(kobe_by_zone_qtr, aes(x = quarter, y = pct_of_qtr)) + 
+  geom_col(fill = 'purple') + 
+  scale_y_continuous(limits = c(0, 0.5), labels = scales::percent_format(accuracy = 1)) + 
+  facet_wrap(~shot_zone_basic, ncol = 4) + 
+  ggtitle("Kobe Bryant Percentage of Shots \n by Zone in Each Quarter", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Quarter', y = 'Percentage of Quarter Shots', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'yellow'), 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5))
+
+# PPS Bar
+
+kobe_by_zone_qtr_pps_bar <- ggplot(kobe_by_zone_qtr, aes(x = quarter, y = pps)) + 
+  geom_col(fill = 'purple') + 
+  scale_y_continuous(limits = c(0, 1.6)) + 
+  facet_wrap(~shot_zone_basic, ncol = 4) + 
+  ggtitle("Kobe Bryant Points per Shot \n by Zone in Each Quarter", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Quarter', y = 'Points per Shot', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'yellow'), 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5))
+
+```
+
+<div class = "row">
+<div class = "col-md-6">
+```{r shots-zone-qtr-pct}
+
+kobe_by_zone_qtr_pct_bar
+
+```
+</div>
+
+<div class = "col-md-6">
+```{r shots-zone-qtr-pps}
+
+kobe_by_zone_qtr_pps_bar
+
+```
+</div>
+</div>
+
+* From the percentage of quarter shots chart, we can see how Kobe's shot profile changed quarter by quarter. 44.7% of Kobe's 1st quarter shots came from the Mid-Range zone, and while Mid-Range remains his most frequented zone in every quarter, his percentage of shots coming from Mid-Range dropped to 40.3% in the 2nd quarter, 40.2% in the 3rd quarter, and 38.9% in the 4th quarter. On the other hand, the percentage of Kobe's shots that were Above the Break 3s increased every quarter - 14.9% of 1st quarter shots, 17.8% of 2nd quarter shots, 18.5% of 3rd quarter shots, and 23.1% of 4th quarter shots. 
+
+* While it isn't 100% clear why he exhibited these shot tendencies, we know that players' legs become tired as they play more minutes. So, it's possible Kobe would take fewer Mid-Range shots as the game went on because those shots often take a lot of work to shake a defender and create separation to shoot in tighter quarters, while the area of Above the Break 3s naturally gives the offensive player more room to operate and may require less effort to create a good shot, which may be the preferred option when energy levels are at a premium in the 4th quarter. 
+
+* From the points per shot chart, it's easy to see that efficiency understandably drops as the game goes on, especially in the 4th quarter when defense tightens up. Kobe's Restricted Area efficiency hovered around 1.26 PPS in each of the first 3 quarters, only to drop to 1.19 PPS in the 4th. Similarly, his Above the Break 3 efficiency was above 1 PPS in each of the first 3 quarters, but dipped to 0.91 PPS in the 4th. 
+
+
+# Winning Time
+
+Some of Kobe's most defining moments in his career came at the end of games, so why not dig even deeper into the 4th quarter data? The NBA's clutch statistics include all plays in the last 5 minutes of a game where the point differential between the two teams is five or less. Because our data doesn't include team scores for each shot, we can't exactly match the NBA's definition of clutch, but we can take a look at all shots in the last 5 minutes of the 4th quarter or any overtime periods (let's call this "winning time" for simplicity) to see how Kobe's performance changed down the stretch of games. 
+
+```{r winning-time}
+
+# Winning Time Data
+
+winning_time <- kobe_shots %>%
+  filter(period >= 4 & ((minutes_remaining == 5 & seconds_remaining == 0) | minutes_remaining < 5)) %>%
+  mutate(opponent = ifelse(htm == "LAL", as.character(vtm), as.character(htm)), 
+         game_date = as.Date(game_date))
+
+```
+
+
+Throughout his career, Kobe took 3,536 shots during winning time. He shot 40.0% from the field and 28.6% from 3, with an EFG% of 44.3%. While these percentages are slight dips from his overall efficiency metrics, this is to be expected with heightened defensive attention and increased shot difficulty in closing moments of games. 
+
+
+```{r winning-time-table}
+
+# Winning Time Percentages
+
+winning_time_pcts <- winning_time %>% 
+  mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0)) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            fg3_pct = mean(ifelse(flag3 == 1, shot_made_numeric, NA), na.rm = T), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_shots = round(prop.table(total_shots), 4)) %>%
+  as.data.frame()
+
+# winning_time_pcts %>% 
+#   mutate(`Game Period` = "Last 5 Minutes of 4th Quarter / OT") %>%
+#   rename(`FG%` = fg_pct, `3FG%` = fg3_pct, `EFG%` = efg_pct, 
+#          `PPS` = pps, `Total Shots` = total_shots) %>%
+#   select(`Game Period`, `FG%`, `3FG%`, `EFG%`, PPS, `Total Shots`) %>%
+#   as.data.frame()
+
+```
+
+Using the heat map excluding the restricted area, let's see how Kobe's winning time shot profile looks compared to his overall shot profile. 
+
+
+<div class = "row">
+<div class = "col-md-6">
+```{r heat-map-outside-restricted-2}
+
+heat_map_outside_restricted
+
+```
+
+</div>
+
+<div class = "col-md-6">
+```{r winning-time-heatmap}
+
+# Winning Time Heat Map
+
+winning_time_heatmap <- create_heat_map_outside_restricted(winning_time, start_year = 1996, end_year = 2015, 
+                                   subtitle = "Last 5 Minutes of 4th Quarter / Overtime")
+
+winning_time_heatmap
+
+```
+</div>
+</div>
+
+As we saw before, Kobe's main hot spots in the overall heat map were the right elbow, right short corner, and just outside the restricted area directly in front of the rim. In the winning time heat map, however, these spots are much less intense, implying that he took a lower percentage of his shots from those areas relative to the rest of the court. In fact, the left and right slot 3 areas are actually where he attempted the most shots during winning time. This supports our Percentage of Shots by Zone in Each Quarter chart, where we saw that Kobe took a higher percentage of his shots from Above the Break 3s in the 4th quarter than he did in any of the first three quarters. 
+
+We can also see that, based on the intensity of the colors on the left and right side of the court for both charts, Kobe's winning time shots were more balanced across the left and right sides of the court than his overall shot profile, which was definitely dominated by the right side, as shown by the higher intensity spots. 
+
+```{r winning-time-zone-table}
+
+# Winning Time Percentages by Zone
+
+winning_time_by_zone <- winning_time %>% 
+  mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0)) %>%
+  group_by(shot_zone_basic) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_shots = round(prop.table(total_shots), 4)) %>%
+  arrange(shot_zone_basic) %>% 
+  as.data.frame()
+
+winning_time_by_zone %>% 
+  mutate(pct_of_shots = scales::percent(pct_of_shots, accuracy = 0.01), 
+         `Game Period` = "Last 5 Minutes of 4th Quarter / OT") %>%
+  rename(`Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct, 
+         `PPS` = pps, `Total Shots` = total_shots, `Percent of Total Shots` = pct_of_shots) %>%
+  select(`Shot Zone`:`Percent of Total Shots`) %>%
+  as.data.frame()
+
+```
+
+Looking at the winning time data by shot zone, the heat map findings are confirmed. His Mid-Range frequency drops from 41.1% in the overall profile to 35.8% in the winning time profile, and his Above the Break 3 frequency jumps from 18.5% in the overall profile to 26.8% in the winning time profile. 
+
+We can look at Kobe's winning time data by year as well, but this time, instead of placing season on the x-axis, let's try a scatter plot with two other variables and use season to label each point. Scatter plots are graphs that use coordinates to display values for two different variables and to show the relationship between those variables. 
+
+Two variables that are frequently linked in sports, and especially in basketball, are volume and efficiency. Oftentimes, players with lower shot volume are more efficient with their shots than high-volume scorers, as they tend to carry a smaller burden in the offense, attract less defensive attention, or benefit from the playmaking abilities of their teammates generating open looks for them. However, efficiency usually dips when these players have an uptick in usage rate and take on a larger role in the offense, as it is much tougher to score when an entire defense is keying in on you. Only the very best players in the world can increase the volume of the shots they take while maintaining or improving their efficiency. 
+
+By plotting number of winning time shots on the x-axis and PPS on the y-axis, we can determine both the effect that volume had on efficiency and the seasons in which Kobe best balanced both volume and efficiency at the end of games. 
+
+
+```{r winning-time-year-table}
+
+# Winning Time Percentages by Year
+
+winning_time_by_year <- winning_time %>% 
+  mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0)) %>%
+  group_by(season_year) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4)) %>%
+  arrange(season_year) %>% 
+  as.data.frame()
+
+winning_time_by_year %>% 
+  rename(`Season` = season_year, `FG%` = fg_pct, `EFG%` = efg_pct, 
+         `PPS` = pps, `Shots in Last 5 Min / OT` = total_shots) %>%
+  as.data.frame()
+
+```
+
+```{r winning-time-by-year-scatter}
+
+# PPS Line
+
+winning_time_by_year_scatter <- ggplot(winning_time_by_year, aes(x = total_shots, y = pps, label = season_year)) + 
+  geom_text(size = 2) + 
+  geom_smooth(method = 'lm', se = F, col = 'red') + 
+  scale_y_continuous(limits = c(0.7, 1.1)) + 
+  ggtitle("Kobe Bryant Winning Time \nVolume vs. Efficiency", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Shots in Last 5 Min / OT', y = 'Points per Shot', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'yellow'), 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5))
+
+winning_time_by_year_scatter
+
+```
+
+It is important to point out that the red line represents the graph's regression line, or the line of best fit between all of the points. The regression line is nearly horizontal, implying the number of shots Kobe took during winning time in a given year had almost no effect on his PPS for those shots. This is because, in the seasons where Kobe had the most winning time volume (2005-06, 2006-07, and 2002-03), he actually maintained his efficiency to match his average in lower volume years, even with so much defensive attention his way. We also see that, of the seasons where he took at least 200 shots during winning time, his 2007-08 MVP season was by far his most efficient, as he shot 45.4% and scored 0.996 PPS down the stretch that year. 
+
+# Shots by Opponent
+
+Whenever I reminisce about Kobe's career, I always remember certain moments in part by the opponents he played against. Exploding for 81 points against the Raptors. Setting a then- Madison Square Garden single game scoring record against the Knicks. Beating my favorite team, the Celtics, in the 2010 NBA Finals for his fifth championship. By looking back at Kobe's efficiency by opponent, we can jog our memory about the greatest performances of his career. 
+
+```{r shots-opponent}
+
+# By Opponent
+
+kobe_by_opponent <- kobe_shots %>% 
+  mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0), 
+         opponent = as.character(ifelse(as.character(htm) == "LAL", as.character(vtm), as.character(htm)))) %>%
+  mutate(opponent = ifelse(opponent %in% c("BKN", "NJN"), "BKN", 
+                           ifelse(opponent %in% c("CHH", "NOH", "NOK", "NOP"), "NO", 
+                                  ifelse(opponent %in% c("SEA", "OKC"), "OKC", 
+                                         ifelse(opponent %in% c("MEM", "VAN"), "MEM", opponent))))) %>%
+  group_by(opponent) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_career = round(prop.table(total_shots), 4)) %>%
+  arrange(opponent)
+
+kobe_by_opponent %>%
+  mutate(pct_of_career = scales::percent(pct_of_career, accuracy = 0.01)) %>%
+  rename(Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct,
+         `PPS` = pps, `Total Shots` = total_shots, `Percent of Career Shots` = pct_of_career) %>%
+  as.data.frame()
+
+# Color by Opponent
+
+opponent_colors <- c("ATL" = "red", "BKN" = "black", "BOS" = "green", "CHA" = "turquoise", "CHI" = "red", 
+                     "CLE" = "darkred", "DAL" = "dodgerblue", "DEN" = "gold", "DET" = "darkblue", "GSW" = "gold", 
+                     "HOU" = "red", "IND" = "gold", "LAC" = "red", "MEM" = "cyan", "MIA" = "firebrick", 
+                     "MIL" = "chartreuse4", "MIN" = "slateblue", "NO" = "steelblue", "NYK" = "orange", 
+                     "OKC" = "deepskyblue", "ORL" = "steelblue1", "PHI" = "red", "PHX" = "purple", "POR" = "red4", 
+                     "SAC" = "purple", "SAS" = "grey40", "TOR" = "purple", "UTA" = "slateblue4", "WAS" = "blue")
+
+# Overall PPS Bar
+
+kobe_by_opponent_pps_bar <- ggplot(kobe_by_opponent, aes(x = reorder(opponent, -pps), y = pps, fill = opponent)) + 
+  geom_col() + 
+  scale_fill_manual(values = opponent_colors) + 
+  ggtitle("Kobe Bryant Points per Shot by Opponent", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Opponent', y = 'Points per Shot', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'white'), 
+        legend.position = "none", 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5), 
+        axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+First, we'll look at points per shot against each opponent for his entire career to determine which teams he was most efficient against on average. 
+
+```{r opponent-pps}
+
+kobe_by_opponent_pps_bar
+
+```
+
+This chart makes sense knowing who some of the greatest games of his career were against. The four teams Kobe scored more than 1 PPS against for his career are the Raptors, Knicks, Blazers, and Warriors, with his hometown Sixers not far behind. Interestingly enough, the team Kobe was least efficient against for his career was the Celtics at 0.90 PPS, although playoff data is not included, and he would get the last laugh in the 2010 Finals. 
+
+To pinpoint what games may have been the key drivers for his efficiency against a particular opponent, let's take a look by year and see if we notice any peaks that stand out.
+
+
+```{r shots-opponent-year}
+
+# Shots By Opponent and Year
+
+kobe_by_opponent_year <- kobe_shots %>% 
+  mutate(season_year = as.numeric(substr(season, 1, 4)), flag3 = ifelse(shot_value == 3, 1, 0), 
+         opponent = as.character(ifelse(as.character(htm) == "LAL", as.character(vtm), as.character(htm)))) %>%
+  mutate(opponent = ifelse(opponent %in% c("BKN", "NJN"), "BKN", 
+                           ifelse(opponent %in% c("CHH", "NOH", "NOK", "NOP"), "NO", 
+                                  ifelse(opponent %in% c("SEA", "OKC"), "OKC", 
+                                         ifelse(opponent %in% c("MEM", "VAN"), "MEM", opponent))))) %>%
+  group_by(season_year, opponent) %>%
+  summarize(fg_pct = mean(shot_made_numeric), 
+            efg_pct = mean((shot_made_numeric + 0.5 * flag3 * shot_made_numeric) / shot_attempted_flag), 
+            pps = mean(shot_made_numeric * shot_value), 
+            total_shots = n()) %>%
+  mutate(fg_pct = round(fg_pct, 4), efg_pct = round(efg_pct, 4), pps = round(pps, 4), 
+         pct_of_season = round(prop.table(total_shots), 4)) %>%
+  arrange(opponent, season_year)
+
+kobe_by_opponent_year %>%
+  mutate(pct_of_season = scales::percent(pct_of_season, accuracy = 0.01)) %>%
+  rename(Season = season_year, Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct,
+         `PPS` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
+  as.data.frame()
+
+# Yearly PPS Line
+
+kobe_by_opponent_year_pps_line <- ggplot(kobe_by_opponent_year, aes(x = season_year, y = pps, col = opponent)) + 
+  geom_line() + 
+  scale_y_continuous(limits = c(0.4, 1.6)) + 
+  scale_x_continuous(limits = c(1995, 2016), breaks = c(1996, 2000, 2004, 2008, 2012, 2016)) + 
+  facet_wrap(~opponent, ncol = 6) + 
+  scale_color_manual(values = opponent_colors) + 
+  ggtitle("Kobe Bryant Points per Shot by Opponent in Each Season", 
+          subtitle = "1996 - 2016") + 
+  labs(x = 'Season', y = 'Points per Shot', caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = 'white'), 
+        legend.position = "none", 
+        plot.title = element_text(face = "bold", colour = "black", size = 16, hjust = 0.5),
+        plot.subtitle = element_text(colour = "black", size = 12, hjust = 0.5), 
+        axis.text.x = element_text(angle = 90, hjust = 1))
+
+```
+
+
+```{r opponent-year-pps}
+
+kobe_by_opponent_year_pps_line
+
+```
+
+With his 81 point game on my mind, I immediately looked to the graph for the Toronto Raptors to see how high his 2005-06 efficiency was compared to other years, given that his greatest scoring game ever occurred during that season. Somehow, his efficiency against the Raptors was even better during the 2007-08 season (1.46 PPS) than during the 2005-06 season (1.28 PPS)! What other vintage Kobe performances could we be forgetting about? 
+
+
+# Build Your Own Kobe Shot Chart
+
+Our final tool can answer that question. This Shiny app below allows you to create your very own shot chart for any single game in Kobe's career. 
+
+We can quickly verify that, on February 1, 2008, Kobe shot 19/28 against the Raptors in one of the most efficient performances of his career. He followed it up on March 11, 2008 with a 12/20 performance against the Raptors, leading to his absurd efficiency in 2007-08 vs. Toronto. Try the shot generator out with any game you like!
+
+All code to create the charts and figures in this post can be found at my Github page at the upper right corner of the site. Thank you for reading this post, and I hope you enjoyed looking back and possibly learning something new about the career of the legendary Kobe Bryant.
+
+
+```{r shiny-app}
+knitr::include_app("https://maxonanalytics.shinyapps.io/Kobe-Bryant-Shot-Chart-Generator/", 
+                   height = "1000px")
+```
+
+
+

@@ -11,14 +11,14 @@ editor_options:
 
 <div class = "row">
 
-## [4/26/2020 - Kobe - Looking Back at a Laker Legend](20200426-Kobe---Looking-Back-at-a-Laker-Legend.html)
+## [5/12/2020 - Kobe - Looking Back at a Laker Legend](20200512-Kobe---Looking-Back-at-a-Laker-Legend.html)
 
 </div>
 
 <div class = "row">
 <div class = "col-md-6">
 
-[![4/26/2020 - Kobe - Looking Back at a Laker Legend](assets/20200426/Kobe Bryant Picture.jpg)](20200426-Kobe---Looking-Back-at-a-Laker-Legend.html)
+[![5/12/2020 - Kobe - Looking Back at a Laker Legend](assets/20200512/Kobe Bryant Picture.jpg)](20200512-Kobe---Looking-Back-at-a-Laker-Legend.html)
 
 </div>
 </div>

@@ -954,7 +954,7 @@ With his 81 point game on my mind, I immediately looked to the graph for the Tor
 
 Our final tool can answer that question. This Shiny app below allows you to create your very own shot chart for any single game in Kobe's career. 
 
-We can quickly verify that, on February 1, 2008, Kobe shot 19/28 against the Raptors in one of the most efficient performances of his career. He followed it up on March 11, 2008 with a 12/20 performance against the Raptors, leading to his absurd efficiency in 2007-08 vs. Toronto. Try the shot generator out with any game you like!
+We can quickly verify that, on February 1, 2008, Kobe shot 19/28 against the Raptors in one of the most efficient performances of his career. He followed it up on March 11, 2008 with a 12/20 performance against the Raptors, leading to his absurd efficiency in 2007-08 vs. Toronto. Try the shot chart generator out with any game you like!
 
 All code to create the charts and figures in this post can be found at my Github page at the upper right corner of the site. Thank you for reading this post, and I hope you enjoyed looking back and possibly learning something new about the career of the legendary Kobe Bryant.
 

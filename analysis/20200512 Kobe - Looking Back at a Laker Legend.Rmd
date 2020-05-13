@@ -467,7 +467,7 @@ There are a couple key conceptual points to be made from the two graphs. In the 
 
 Using either the EFG% line or the Points per Shot line, we can clearly see that Kobe was most efficient on a per shot basis from within 2 feet of the rim, with a PPS of 1.28 at 0 feet away, 1.35 at 1 foot away, and 1.10 at 2 feet away. The only other distances where Kobe scored greater than 1 PPS were 23, 24, and 25 feet from the rim. This supports analytical evidence that layups and 3's are the most efficient shots in basketball, and that on average, those are the attempts that players and teams should be trying to maximize. 
 
-This position is not universally valid, however. Down the stretch of close games, possessions are limited, and teams tighten their help defense around the rim. When a team is down by 1 with 5 seconds left, maximizing PPS is not nearly as important as maximizing FG%, since scoring either a 2 or a 3 will give that team the lead and have nearly the same impact on the game. Making the shot is what matters most in this scenario, and while a mid-range jumper may not be the most efficient shot in the long run, it could very well be the best option a team has in a given possession to maximize their chances of winning, especially during crunch time. So, even though Kobe had a worse PPS from 16-20 feet than he did from 21-25 feet for his career, that 16-20 foot mid-range jumper could be considered a slightly better shot than a 3 down the stretch of games, and the most optimal shot choice to maximize chances of winning is usually dependent on time and score. 
+This position is not universally valid, however. Down the stretch of close games, possessions are limited, and teams tighten their help defense around the rim. When a team is down by 1 with 5 seconds left, maximizing PPS is not nearly as important as maximizing FG%, since scoring either a 2 or a 3 will give that team the lead and have nearly the same impact on the game. Making the shot is what matters most in this scenario, and while a mid-range jumper may not be the most efficient shot in the long run, it could very well be the best option a team has in a given possession to maximize their chances of winning, especially during crunch time. So, even though Kobe had a worse PPS from 16-20 feet than he did from 21-25 feet for his career, that 16-20 foot mid-range jumper could be considered a slightly better shot than a 3 down the stretch of games, as the most optimal shot choice to maximize chances of winning is usually dependent on time and score. 
 
 
 # Shots by Zone
@@ -499,7 +499,7 @@ kobe_by_zone %>%
 
 ```
 
-It's clear that this is not a shot profile from a current Houston Rocket, as Kobe took by far the highest percentage of his total shots (41.1%) from Mid-Range, even though his PPS from Mid-Range was his lowest (0.815 PPS), outside of shots from the backcourt. We again see that he took very few corner 3s (0.93% of shots from the left corner and 1.29% of shots from the right corner), and his two most efficient zones in terms of high frequency shots were the Restricted Area (1.248 PPS) and the Above the Break 3 (0.991 PPS). 
+It's clear that this is not a shot profile from a current Houston Rocket, as Kobe took by far the highest percentage of his total shots (41.1%) from Mid-Range, even though his PPS from Mid-Range was his lowest (0.815 PPS) outside of shots from the backcourt. We again see that he took very few corner 3s (0.93% of shots from the left corner and 1.29% of shots from the right corner), and his two most efficient zones in terms of high frequency shots were the Restricted Area (1.248 PPS) and the Above the Break 3 (0.991 PPS). 
 
 If his career were shifted 10 years into the future, we can imagine the percentage of shots taken from Mid-Range and the Above the Break 3 likely flipping to match the rest of the league, and his overall efficiency may have benefited from it. In the 2009-2010 season, the Orlando Magic, one of the original analytics darlings who surrounded Dwight Howard with shooters like Rashard Lewis and J.J. Redick around the perimeter, were last in the NBA with 17.5 Mid-Range field goal attempts per game. In the 2019-2020 season, that number would rank second in the league, only behind the San Antonio Spurs' 22.2 Mid-Range attempts per game as of today. This massive shift in offensive philosophy in just ten years shows how much we have learned about the game of basketball and how much the game has changed since Kobe's prime, but it is still interesting to look back at the manner in which Kobe dominated his era. 
 
@@ -592,7 +592,7 @@ kobe_by_zone_year_pps_line
 
 # Shots by Quarter
 
-Now that we've taken a look at how Kobe's shot profile changed over the course of his career, we can get even more granular and look into how his shot profile changed over the course of an average game by visualizing this data by quarter. In this breakdown, we'll group all overtime periods into one "OT" category for simplicity, and we'll create faceted charts to show how percentage of shots taken and points per shot changes by quarter for each major shot zone, with some insights below. 
+Now that we've taken a look at how Kobe's shot profile changed over the course of his career, we can get even more granular and look into how his shot profile changed over the course of an average game by visualizing this data by quarter. In this breakdown, we'll group all overtime periods into one "OT" category for simplicity, and we'll create faceted charts to show how percentage of shots taken and points per shot change by quarter for each major shot zone, with some insights below. 
 
 ```{r shots-zone-qtr}
 
@@ -673,7 +673,7 @@ kobe_by_zone_qtr_pps_bar
 
 # Winning Time
 
-Some of Kobe's most defining moments in his career came at the end of games, so why not dig even deeper into the 4th quarter data? The NBA's clutch statistics include all plays in the last 5 minutes of a game where the point differential between the two teams is five or less. Because our data doesn't include team scores for each shot, we can't exactly match the NBA's definition of clutch, but we can take a look at all shots in the last 5 minutes of the 4th quarter or any overtime periods (let's call this "winning time" for simplicity) to see how Kobe's performance changed down the stretch of games. 
+Some of Kobe's most defining moments in his career came at the end of games, so why not dig deeper into the 4th quarter data? The NBA's clutch statistics include all plays in the last 5 minutes of a game where the point differential between the two teams is five or less. Because our data doesn't include team scores for each shot, we can't exactly match the NBA's definition of clutch, but we can take a look at all shots in the last 5 minutes of the 4th quarter or any overtime periods (let's call this "winning time" for simplicity) to see how Kobe's performance changed down the stretch of games. 
 
 ```{r winning-time}
 
@@ -741,7 +741,7 @@ winning_time_heatmap
 </div>
 </div>
 
-As we saw before, Kobe's main hot spots in the overall heat map were the right elbow, right short corner, and just outside the restricted area directly in front of the rim. In the winning time heat map, however, these spots are much less intense, implying that he took a lower percentage of his shots from those areas relative to the rest of the court. In fact, the left and right slot 3 areas are actually where he attempted the most shots during winning time. This supports our Percentage of Shots by Zone in Each Quarter chart, where we saw that Kobe took a higher percentage of his shots from Above the Break 3s in the 4th quarter than he did in any of the first three quarters. 
+As we saw before, Kobe's main hot spots in the overall heat map were the right elbow, right short corner, and just outside the restricted area directly in front of the rim. In the winning time heat map, however, these spots are much less intense, implying that he took a lower percentage of his shots from those areas relative to the rest of the court in the last few minutes of the game. In fact, the left and right slot 3 areas are actually where he attempted the most shots during winning time. This supports our Percentage of Shots by Zone in Each Quarter chart, where we saw that Kobe took a higher percentage of his shots from Above the Break 3s in the 4th quarter than he did in any of the first three quarters. 
 
 We can also see that, based on the intensity of the colors on the left and right side of the court for both charts, Kobe's winning time shots were more balanced across the left and right sides of the court than his overall shot profile, which was definitely dominated by the right side, as shown by the higher intensity spots. 
 
@@ -795,10 +795,10 @@ winning_time_by_year <- winning_time %>%
   arrange(season_year) %>% 
   as.data.frame()
 
-winning_time_by_year %>% 
-  rename(`Season` = season_year, `FG%` = fg_pct, `EFG%` = efg_pct, 
-         `PPS` = pps, `Shots in Last 5 Min / OT` = total_shots) %>%
-  as.data.frame()
+# winning_time_by_year %>% 
+#   rename(`Season` = season_year, `FG%` = fg_pct, `EFG%` = efg_pct, 
+#          `PPS` = pps, `Shots in Last 5 Min / OT` = total_shots) %>%
+#   as.data.frame()
 
 ```
 
@@ -807,7 +807,7 @@ winning_time_by_year %>%
 # PPS Line
 
 winning_time_by_year_scatter <- ggplot(winning_time_by_year, aes(x = total_shots, y = pps, label = season_year)) + 
-  geom_text(size = 2) + 
+  geom_text(size = 3) + 
   geom_smooth(method = 'lm', se = F, col = 'red') + 
   scale_y_continuous(limits = c(0.7, 1.1)) + 
   ggtitle("Kobe Bryant Winning Time \nVolume vs. Efficiency", 
@@ -826,7 +826,7 @@ It is important to point out that the red line represents the graph's regression
 
 # Shots by Opponent
 
-Whenever I reminisce about Kobe's career, I always remember certain moments in part by the opponents he played against. Exploding for 81 points against the Raptors. Setting a then- Madison Square Garden single game scoring record against the Knicks. Beating my favorite team, the Celtics, in the 2010 NBA Finals for his fifth championship. By looking back at Kobe's efficiency by opponent, we can jog our memory about the greatest performances of his career. 
+Whenever I reminisce about Kobe's career, I always remember certain moments by the opponents he played against. Exploding for 81 points against the Raptors. Setting a then- Madison Square Garden single game scoring record against the Knicks. Beating my favorite team, the Celtics, in the 2010 NBA Finals for his fifth championship. By looking back at Kobe's efficiency by opponent, we can jog our memory about the greatest performances of his career. 
 
 ```{r shots-opponent}
 
@@ -848,11 +848,11 @@ kobe_by_opponent <- kobe_shots %>%
          pct_of_career = round(prop.table(total_shots), 4)) %>%
   arrange(opponent)
 
-kobe_by_opponent %>%
-  mutate(pct_of_career = scales::percent(pct_of_career, accuracy = 0.01)) %>%
-  rename(Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct,
-         `PPS` = pps, `Total Shots` = total_shots, `Percent of Career Shots` = pct_of_career) %>%
-  as.data.frame()
+# kobe_by_opponent %>%
+#   mutate(pct_of_career = scales::percent(pct_of_career, accuracy = 0.01)) %>%
+#   rename(Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct,
+#          `PPS` = pps, `Total Shots` = total_shots, `Percent of Career Shots` = pct_of_career) %>%
+#   as.data.frame()
 
 # Color by Opponent
 
@@ -914,11 +914,11 @@ kobe_by_opponent_year <- kobe_shots %>%
          pct_of_season = round(prop.table(total_shots), 4)) %>%
   arrange(opponent, season_year)
 
-kobe_by_opponent_year %>%
-  mutate(pct_of_season = scales::percent(pct_of_season, accuracy = 0.01)) %>%
-  rename(Season = season_year, Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct,
-         `PPS` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
-  as.data.frame()
+# kobe_by_opponent_year %>%
+#   mutate(pct_of_season = scales::percent(pct_of_season, accuracy = 0.01)) %>%
+#   rename(Season = season_year, Opponent = opponent, `FG%` = fg_pct, `EFG%` = efg_pct,
+#          `PPS` = pps, `Total Shots` = total_shots, `Percent of Season Shots` = pct_of_season) %>%
+#   as.data.frame()
 
 # Yearly PPS Line
 

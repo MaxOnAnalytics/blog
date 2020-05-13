@@ -28,6 +28,7 @@
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
 <link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
 <script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+<script src="site_libs/kePrint-0.0.1/kePrint.js"></script>
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
@@ -448,10 +449,633 @@ div.section {
 <p><span class="math display">\[eFG\% = \frac {FG + (0.5 * 3FG)} {FGA}\]</span></p>
 <p>By multiplying EFG% by 2, we can get points per shot, which is important in determining how many points a player scores on average when they shoot the ball from a given location.</p>
 <p>Below is a table showing the FG%, EFG%, Points per Shot (PPS), Total Shots, and Percent of Total Shots Kobe took from a given distance away from the rim, from 0 feet to 29 feet. The first graph shows how Kobe’s FG% and EFG% varied as he moved further from the rim, and the second graph shows the same for PPS.</p>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Shot Distance (ft)"],"name":[1],"type":["int"],"align":["right"]},{"label":["FG%"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["EFG%"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["PPS"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Total Shots"],"name":[5],"type":["int"],"align":["right"]},{"label":["Percent of Total Shots"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"0","2":"0.6395","3":"0.6395","4":"1.2789","5":"4729","6":"18.05%"},{"1":"1","2":"0.6770","3":"0.6770","4":"1.3539","5":"551","6":"2.10%"},{"1":"2","2":"0.5488","3":"0.5488","4":"1.0977","5":"512","6":"1.95%"},{"1":"3","2":"0.4324","3":"0.4324","4":"0.8649","5":"333","6":"1.27%"},{"1":"4","2":"0.4494","3":"0.4494","4":"0.8987","5":"316","6":"1.21%"},{"1":"5","2":"0.4489","3":"0.4489","4":"0.8978","5":"450","6":"1.72%"},{"1":"6","2":"0.4259","3":"0.4259","4":"0.8517","5":"526","6":"2.01%"},{"1":"7","2":"0.4332","3":"0.4332","4":"0.8664","5":"584","6":"2.23%"},{"1":"8","2":"0.4615","3":"0.4615","4":"0.9231","5":"559","6":"2.13%"},{"1":"9","2":"0.4232","3":"0.4232","4":"0.8463","5":"501","6":"1.91%"},{"1":"10","2":"0.4226","3":"0.4226","4":"0.8452","5":"575","6":"2.19%"},{"1":"11","2":"0.4640","3":"0.4640","4":"0.9280","5":"597","6":"2.28%"},{"1":"12","2":"0.4360","3":"0.4360","4":"0.8721","5":"688","6":"2.63%"},{"1":"13","2":"0.4239","3":"0.4239","4":"0.8478","5":"795","6":"3.03%"},{"1":"14","2":"0.4234","3":"0.4234","4":"0.8468","5":"881","6":"3.36%"},{"1":"15","2":"0.4293","3":"0.4293","4":"0.8586","5":"983","6":"3.75%"},{"1":"16","2":"0.3886","3":"0.3886","4":"0.7771","5":"1207","6":"4.61%"},{"1":"17","2":"0.3923","3":"0.3923","4":"0.7847","5":"1277","6":"4.87%"},{"1":"18","2":"0.3976","3":"0.3976","4":"0.7952","5":"1250","6":"4.77%"},{"1":"19","2":"0.4092","3":"0.4092","4":"0.8185","5":"1146","6":"4.37%"},{"1":"20","2":"0.3969","3":"0.3969","4":"0.7938","5":"1033","6":"3.94%"},{"1":"21","2":"0.4205","3":"0.4205","4":"0.8410","5":"692","6":"2.64%"},{"1":"22","2":"0.3638","3":"0.4077","4":"0.8155","5":"569","6":"2.17%"},{"1":"23","2":"0.3711","3":"0.5237","4":"1.0474","5":"485","6":"1.85%"},{"1":"24","2":"0.3577","3":"0.5365","4":"1.0731","5":"1300","6":"4.96%"},{"1":"25","2":"0.3600","3":"0.5400","4":"1.0799","5":"1689","6":"6.45%"},{"1":"26","2":"0.3233","3":"0.4845","4":"0.9689","5":"1095","6":"4.18%"},{"1":"27","2":"0.2857","3":"0.4286","4":"0.8571","5":"455","6":"1.74%"},{"1":"28","2":"0.2395","3":"0.3593","4":"0.7186","5":"167","6":"0.64%"},{"1":"29","2":"0.2237","3":"0.3355","4":"0.6711","5":"76","6":"0.29%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
+<div style="border: 1px solid #ddd; padding: 0px; overflow-y: scroll; height:400px; ">
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Shot Distance (ft)
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+FG%
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+EFG%
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+PPS
+</th>
+<th style="text-align:right;position: sticky; top:0; background-color: #FFFFFF;">
+Total Shots
+</th>
+<th style="text-align:left;position: sticky; top:0; background-color: #FFFFFF;">
+Percent of Total Shots
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.6395
+</td>
+<td style="text-align:right;">
+0.6395
+</td>
+<td style="text-align:right;">
+1.2789
+</td>
+<td style="text-align:right;">
+4729
+</td>
+<td style="text-align:left;">
+18.05%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.6770
+</td>
+<td style="text-align:right;">
+0.6770
+</td>
+<td style="text-align:right;">
+1.3539
+</td>
+<td style="text-align:right;">
+551
+</td>
+<td style="text-align:left;">
+2.10%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0.5488
+</td>
+<td style="text-align:right;">
+0.5488
+</td>
+<td style="text-align:right;">
+1.0977
+</td>
+<td style="text-align:right;">
+512
+</td>
+<td style="text-align:left;">
+1.95%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+0.4324
+</td>
+<td style="text-align:right;">
+0.4324
+</td>
+<td style="text-align:right;">
+0.8649
+</td>
+<td style="text-align:right;">
+333
+</td>
+<td style="text-align:left;">
+1.27%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+0.4494
+</td>
+<td style="text-align:right;">
+0.4494
+</td>
+<td style="text-align:right;">
+0.8987
+</td>
+<td style="text-align:right;">
+316
+</td>
+<td style="text-align:left;">
+1.21%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+0.4489
+</td>
+<td style="text-align:right;">
+0.4489
+</td>
+<td style="text-align:right;">
+0.8978
+</td>
+<td style="text-align:right;">
+450
+</td>
+<td style="text-align:left;">
+1.72%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+0.4259
+</td>
+<td style="text-align:right;">
+0.4259
+</td>
+<td style="text-align:right;">
+0.8517
+</td>
+<td style="text-align:right;">
+526
+</td>
+<td style="text-align:left;">
+2.01%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+0.4332
+</td>
+<td style="text-align:right;">
+0.4332
+</td>
+<td style="text-align:right;">
+0.8664
+</td>
+<td style="text-align:right;">
+584
+</td>
+<td style="text-align:left;">
+2.23%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+0.4615
+</td>
+<td style="text-align:right;">
+0.4615
+</td>
+<td style="text-align:right;">
+0.9231
+</td>
+<td style="text-align:right;">
+559
+</td>
+<td style="text-align:left;">
+2.13%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+0.4232
+</td>
+<td style="text-align:right;">
+0.4232
+</td>
+<td style="text-align:right;">
+0.8463
+</td>
+<td style="text-align:right;">
+501
+</td>
+<td style="text-align:left;">
+1.91%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0.4226
+</td>
+<td style="text-align:right;">
+0.4226
+</td>
+<td style="text-align:right;">
+0.8452
+</td>
+<td style="text-align:right;">
+575
+</td>
+<td style="text-align:left;">
+2.19%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+0.4640
+</td>
+<td style="text-align:right;">
+0.4640
+</td>
+<td style="text-align:right;">
+0.9280
+</td>
+<td style="text-align:right;">
+597
+</td>
+<td style="text-align:left;">
+2.28%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+0.4360
+</td>
+<td style="text-align:right;">
+0.4360
+</td>
+<td style="text-align:right;">
+0.8721
+</td>
+<td style="text-align:right;">
+688
+</td>
+<td style="text-align:left;">
+2.63%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+0.4239
+</td>
+<td style="text-align:right;">
+0.4239
+</td>
+<td style="text-align:right;">
+0.8478
+</td>
+<td style="text-align:right;">
+795
+</td>
+<td style="text-align:left;">
+3.03%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:right;">
+0.4234
+</td>
+<td style="text-align:right;">
+0.4234
+</td>
+<td style="text-align:right;">
+0.8468
+</td>
+<td style="text-align:right;">
+881
+</td>
+<td style="text-align:left;">
+3.36%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:right;">
+0.4293
+</td>
+<td style="text-align:right;">
+0.4293
+</td>
+<td style="text-align:right;">
+0.8586
+</td>
+<td style="text-align:right;">
+983
+</td>
+<td style="text-align:left;">
+3.75%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0.3886
+</td>
+<td style="text-align:right;">
+0.3886
+</td>
+<td style="text-align:right;">
+0.7771
+</td>
+<td style="text-align:right;">
+1207
+</td>
+<td style="text-align:left;">
+4.61%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+0.3923
+</td>
+<td style="text-align:right;">
+0.3923
+</td>
+<td style="text-align:right;">
+0.7847
+</td>
+<td style="text-align:right;">
+1277
+</td>
+<td style="text-align:left;">
+4.87%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+0.3976
+</td>
+<td style="text-align:right;">
+0.3976
+</td>
+<td style="text-align:right;">
+0.7952
+</td>
+<td style="text-align:right;">
+1250
+</td>
+<td style="text-align:left;">
+4.77%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+0.4092
+</td>
+<td style="text-align:right;">
+0.4092
+</td>
+<td style="text-align:right;">
+0.8185
+</td>
+<td style="text-align:right;">
+1146
+</td>
+<td style="text-align:left;">
+4.37%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+0.3969
+</td>
+<td style="text-align:right;">
+0.3969
+</td>
+<td style="text-align:right;">
+0.7938
+</td>
+<td style="text-align:right;">
+1033
+</td>
+<td style="text-align:left;">
+3.94%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:right;">
+0.4205
+</td>
+<td style="text-align:right;">
+0.4205
+</td>
+<td style="text-align:right;">
+0.8410
+</td>
+<td style="text-align:right;">
+692
+</td>
+<td style="text-align:left;">
+2.64%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+0.3638
+</td>
+<td style="text-align:right;">
+0.4077
+</td>
+<td style="text-align:right;">
+0.8155
+</td>
+<td style="text-align:right;">
+569
+</td>
+<td style="text-align:left;">
+2.17%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+0.3711
+</td>
+<td style="text-align:right;">
+0.5237
+</td>
+<td style="text-align:right;">
+1.0474
+</td>
+<td style="text-align:right;">
+485
+</td>
+<td style="text-align:left;">
+1.85%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:right;">
+0.3577
+</td>
+<td style="text-align:right;">
+0.5365
+</td>
+<td style="text-align:right;">
+1.0731
+</td>
+<td style="text-align:right;">
+1300
+</td>
+<td style="text-align:left;">
+4.96%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:right;">
+0.3600
+</td>
+<td style="text-align:right;">
+0.5400
+</td>
+<td style="text-align:right;">
+1.0799
+</td>
+<td style="text-align:right;">
+1689
+</td>
+<td style="text-align:left;">
+6.45%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+26
+</td>
+<td style="text-align:right;">
+0.3233
+</td>
+<td style="text-align:right;">
+0.4845
+</td>
+<td style="text-align:right;">
+0.9689
+</td>
+<td style="text-align:right;">
+1095
+</td>
+<td style="text-align:left;">
+4.18%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+0.2857
+</td>
+<td style="text-align:right;">
+0.4286
+</td>
+<td style="text-align:right;">
+0.8571
+</td>
+<td style="text-align:right;">
+455
+</td>
+<td style="text-align:left;">
+1.74%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+28
+</td>
+<td style="text-align:right;">
+0.2395
+</td>
+<td style="text-align:right;">
+0.3593
+</td>
+<td style="text-align:right;">
+0.7186
+</td>
+<td style="text-align:right;">
+167
+</td>
+<td style="text-align:left;">
+0.64%
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+29
+</td>
+<td style="text-align:right;">
+0.2237
+</td>
+<td style="text-align:right;">
+0.3355
+</td>
+<td style="text-align:right;">
+0.6711
+</td>
+<td style="text-align:right;">
+76
+</td>
+<td style="text-align:left;">
+0.29%
+</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="row">
 <div class="col-md-6">
@@ -469,11 +1093,172 @@ div.section {
 <h1>Shots by Zone</h1>
 <p>Classifying shots in terms of their distance from the rim isn’t the most intuitive method; an 18-foot jumper and a 19-foot jumper are almost indistinguishable in real time. Rather, it is more natural to group shots together by their general area on the court. The NBA does this in their shot data using 7 distinct zones: Above the Break 3, Backcourt, In The Paint (Non-Restricted Area), Left Corner 3, Mid-Range, Restricted Area, and Right Corner 3.</p>
 <p>Below are Kobe’s career metrics by shot zone, including FG%, EFG%, PPS, Total Shots, and Percent of Total Shots.</p>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Shot Zone"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["FG%"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["EFG%"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["PPS"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Total Shots"],"name":[5],"type":["int"],"align":["right"]},{"label":["Percent of Total Shots"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"Above the Break 3","2":"0.3304","3":"0.4955","4":"0.9909","5":"4849","6":"18.51%"},{"1":"Backcourt","2":"0.0182","3":"0.0273","4":"0.0545","5":"55","6":"0.21%"},{"1":"In The Paint (Non-RA)","2":"0.4506","3":"0.4506","4":"0.9012","5":"3817","6":"14.57%"},{"1":"Left Corner 3","2":"0.3525","3":"0.5287","4":"1.0574","5":"244","6":"0.93%"},{"1":"Mid-Range","2":"0.4063","3":"0.4075","4":"0.8151","5":"10771","6":"41.11%"},{"1":"Restricted Area","2":"0.6240","3":"0.6240","4":"1.2480","5":"6125","6":"23.38%"},{"1":"Right Corner 3","2":"0.3264","3":"0.4896","4":"0.9792","5":"337","6":"1.29%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Shot Zone
+</th>
+<th style="text-align:right;">
+FG%
+</th>
+<th style="text-align:right;">
+EFG%
+</th>
+<th style="text-align:right;">
+PPS
+</th>
+<th style="text-align:right;">
+Total Shots
+</th>
+<th style="text-align:left;">
+Percent of Total Shots
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Above the Break 3
+</td>
+<td style="text-align:right;">
+0.3304
+</td>
+<td style="text-align:right;">
+0.4955
+</td>
+<td style="text-align:right;">
+0.9909
+</td>
+<td style="text-align:right;">
+4849
+</td>
+<td style="text-align:left;">
+18.51%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Backcourt
+</td>
+<td style="text-align:right;">
+0.0182
+</td>
+<td style="text-align:right;">
+0.0273
+</td>
+<td style="text-align:right;">
+0.0545
+</td>
+<td style="text-align:right;">
+55
+</td>
+<td style="text-align:left;">
+0.21%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+In The Paint (Non-RA)
+</td>
+<td style="text-align:right;">
+0.4506
+</td>
+<td style="text-align:right;">
+0.4506
+</td>
+<td style="text-align:right;">
+0.9012
+</td>
+<td style="text-align:right;">
+3817
+</td>
+<td style="text-align:left;">
+14.57%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Left Corner 3
+</td>
+<td style="text-align:right;">
+0.3525
+</td>
+<td style="text-align:right;">
+0.5287
+</td>
+<td style="text-align:right;">
+1.0574
+</td>
+<td style="text-align:right;">
+244
+</td>
+<td style="text-align:left;">
+0.93%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mid-Range
+</td>
+<td style="text-align:right;">
+0.4063
+</td>
+<td style="text-align:right;">
+0.4075
+</td>
+<td style="text-align:right;">
+0.8151
+</td>
+<td style="text-align:right;">
+10771
+</td>
+<td style="text-align:left;">
+41.11%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Restricted Area
+</td>
+<td style="text-align:right;">
+0.6240
+</td>
+<td style="text-align:right;">
+0.6240
+</td>
+<td style="text-align:right;">
+1.2480
+</td>
+<td style="text-align:right;">
+6125
+</td>
+<td style="text-align:left;">
+23.38%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Right Corner 3
+</td>
+<td style="text-align:right;">
+0.3264
+</td>
+<td style="text-align:right;">
+0.4896
+</td>
+<td style="text-align:right;">
+0.9792
+</td>
+<td style="text-align:right;">
+337
+</td>
+<td style="text-align:left;">
+1.29%
+</td>
+</tr>
+</tbody>
+</table>
 <p>It’s clear that this is not a shot profile from a current Houston Rocket, as Kobe took by far the highest percentage of his total shots (41.1%) from Mid-Range, even though his PPS from Mid-Range was his lowest (0.815 PPS) outside of shots from the backcourt. We again see that he took very few corner 3s (0.93% of shots from the left corner and 1.29% of shots from the right corner), and his two most efficient zones in terms of high frequency shots were the Restricted Area (1.248 PPS) and the Above the Break 3 (0.991 PPS).</p>
 <p>If his career were shifted 10 years into the future, we can imagine the percentage of shots taken from Mid-Range and the Above the Break 3 likely flipping to match the rest of the league, and his overall efficiency may have benefited from it. In the 2009-2010 season, the Orlando Magic, one of the original analytics darlings who surrounded Dwight Howard with shooters like Rashard Lewis and J.J. Redick around the perimeter, were last in the NBA with 17.5 Mid-Range field goal attempts per game. In the 2019-2020 season, that number would rank second in the league, only behind the San Antonio Spurs’ 22.2 Mid-Range attempts per game as of today. This massive shift in offensive philosophy in just ten years shows how much we have learned about the game of basketball and how much the game has changed since Kobe’s prime, but it is still interesting to look back at the manner in which Kobe dominated his era.</p>
 <p>Line graphs can tell us how Kobe’s shot profile changed as his career went on. Because he took so few of his shots from the corners and backcourt, we can remove those zones for simplicity and only include Above the Break 3, In The Paint (Non-RA), Mid-Range, and Restricted Area. This time, we’ll look at both the percentage of his total shots he took in each zone over time and his PPS by zone over time, with a few quick bullet points below each graph outlining insights. The year on the x-axis corresponds with the start year of each season (2000 represents the 2000-01 season).</p>
@@ -525,11 +1310,152 @@ div.section {
 </div>
 <p>As we saw before, Kobe’s main hot spots in the overall heat map were the right elbow, right short corner, and just outside the restricted area directly in front of the rim. In the winning time heat map, however, these spots are much less intense, implying that he took a lower percentage of his shots from those areas relative to the rest of the court in the last few minutes of the game. In fact, the left and right slot 3 areas are actually where he attempted the most shots during winning time. This supports our Percentage of Shots by Zone in Each Quarter chart, where we saw that Kobe took a higher percentage of his shots from Above the Break 3s in the 4th quarter than he did in any of the first three quarters.</p>
 <p>We can also see that, based on the intensity of the colors on the left and right side of the court for both charts, Kobe’s winning time shots were more balanced across the left and right sides of the court than his overall shot profile, which was definitely dominated by the right side, as shown by the higher intensity spots.</p>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Shot Zone"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["FG%"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["EFG%"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["PPS"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Total Shots"],"name":[5],"type":["int"],"align":["right"]},{"label":["Percent of Total Shots"],"name":[6],"type":["chr"],"align":["left"]}],"data":[{"1":"Above the Break 3","2":"0.2788","3":"0.4176","4":"0.8353","5":"947","6":"26.78%"},{"1":"In The Paint (Non-RA)","2":"0.4353","3":"0.4353","4":"0.8705","5":"448","6":"12.67%"},{"1":"Left Corner 3","2":"0.4130","3":"0.6196","4":"1.2391","5":"46","6":"1.30%"},{"1":"Mid-Range","2":"0.3676","3":"0.3700","4":"0.7399","5":"1265","6":"35.77%"},{"1":"Restricted Area","2":"0.5911","3":"0.5911","4":"1.1823","5":"768","6":"21.72%"},{"1":"Right Corner 3","2":"0.2581","3":"0.3871","4":"0.7742","5":"62","6":"1.75%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
-</div>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+Shot Zone
+</th>
+<th style="text-align:right;">
+FG%
+</th>
+<th style="text-align:right;">
+EFG%
+</th>
+<th style="text-align:right;">
+PPS
+</th>
+<th style="text-align:right;">
+Total Shots
+</th>
+<th style="text-align:left;">
+Percent of Total Shots
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Above the Break 3
+</td>
+<td style="text-align:right;">
+0.2788
+</td>
+<td style="text-align:right;">
+0.4176
+</td>
+<td style="text-align:right;">
+0.8353
+</td>
+<td style="text-align:right;">
+947
+</td>
+<td style="text-align:left;">
+26.78%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+In The Paint (Non-RA)
+</td>
+<td style="text-align:right;">
+0.4353
+</td>
+<td style="text-align:right;">
+0.4353
+</td>
+<td style="text-align:right;">
+0.8705
+</td>
+<td style="text-align:right;">
+448
+</td>
+<td style="text-align:left;">
+12.67%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Left Corner 3
+</td>
+<td style="text-align:right;">
+0.4130
+</td>
+<td style="text-align:right;">
+0.6196
+</td>
+<td style="text-align:right;">
+1.2391
+</td>
+<td style="text-align:right;">
+46
+</td>
+<td style="text-align:left;">
+1.30%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Mid-Range
+</td>
+<td style="text-align:right;">
+0.3676
+</td>
+<td style="text-align:right;">
+0.3700
+</td>
+<td style="text-align:right;">
+0.7399
+</td>
+<td style="text-align:right;">
+1265
+</td>
+<td style="text-align:left;">
+35.77%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Restricted Area
+</td>
+<td style="text-align:right;">
+0.5911
+</td>
+<td style="text-align:right;">
+0.5911
+</td>
+<td style="text-align:right;">
+1.1823
+</td>
+<td style="text-align:right;">
+768
+</td>
+<td style="text-align:left;">
+21.72%
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Right Corner 3
+</td>
+<td style="text-align:right;">
+0.2581
+</td>
+<td style="text-align:right;">
+0.3871
+</td>
+<td style="text-align:right;">
+0.7742
+</td>
+<td style="text-align:right;">
+62
+</td>
+<td style="text-align:left;">
+1.75%
+</td>
+</tr>
+</tbody>
+</table>
 <p>Looking at the winning time data by shot zone, the heat map findings are confirmed. His Mid-Range frequency drops from 41.1% in the overall profile to 35.8% in the winning time profile, and his Above the Break 3 frequency jumps from 18.5% in the overall profile to 26.8% in the winning time profile.</p>
 <p>We can look at Kobe’s winning time data by year as well, but this time, instead of placing season on the x-axis, let’s try a scatter plot with two other variables and use season to label each point. Scatter plots are graphs that use coordinates to display values for two different variables and to show the relationship between those variables.</p>
 <p>Two variables that are frequently linked in sports, and especially in basketball, are volume and efficiency. Oftentimes, players with lower shot volume are more efficient with their shots than high-volume scorers, as they tend to carry a smaller burden in the offense, attract less defensive attention, or benefit from the playmaking abilities of their teammates generating open looks for them. However, efficiency usually dips when these players have an uptick in usage rate and take on a larger role in the offense, as it is much tougher to score when an entire defense is keying in on you. Only the very best players in the world can increase the volume of the shots they take while maintaining or improving their efficiency.</p>
@@ -578,30 +1504,32 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] scales_1.0.0    jsonlite_1.6    httr_1.4.0      dplyr_0.8.0.1  
-[5] hexbin_1.27.2   gganimate_1.0.4 plotly_4.7.1    ggplot2_3.1.0  
-[9] shiny_1.4.0.2  
+ [1] kableExtra_1.1.0 scales_1.0.0     jsonlite_1.6     httr_1.4.0      
+ [5] dplyr_0.8.0.1    hexbin_1.27.2    gganimate_1.0.4  plotly_4.7.1    
+ [9] ggplot2_3.1.0    shiny_1.4.0.2   
 
 loaded via a namespace (and not attached):
- [1] progress_1.2.2      tidyselect_0.2.5    xfun_0.12          
- [4] purrr_0.3.2         lattice_0.20-35     colorspace_1.3-2   
- [7] htmltools_0.4.0     viridisLite_0.3.0   yaml_2.2.0         
-[10] rlang_0.4.5         later_1.0.0         pillar_1.3.1       
-[13] glue_1.3.0          withr_2.1.1         tweenr_1.0.1       
-[16] plyr_1.8.4          stringr_1.4.0       munsell_0.5.0      
-[19] gtable_0.2.0        workflowr_1.6.0     htmlwidgets_1.5.1  
-[22] evaluate_0.14       labeling_0.3        knitr_1.27         
-[25] fastmap_1.0.1       httpuv_1.5.2        curl_3.3           
-[28] gifski_0.8.6        highr_0.6           Rcpp_1.0.0         
-[31] xtable_1.8-2        promises_1.1.0      backports_1.1.1    
-[34] mime_0.5            farver_2.0.3        fs_1.2.7           
-[37] png_0.1-7           hms_0.4.2           digest_0.6.12      
-[40] stringi_1.3.1       grid_3.4.1          rprojroot_1.2      
-[43] tools_3.4.1         magrittr_1.5        lazyeval_0.2.1     
-[46] tibble_2.0.1        crayon_1.3.4        tidyr_0.8.3        
-[49] pkgconfig_2.0.2     MASS_7.3-47         data.table_1.10.4-3
-[52] prettyunits_1.0.2   assertthat_0.2.0    rmarkdown_2.1      
-[55] R6_2.2.2            git2r_0.26.1        compiler_3.4.1     </code></pre>
+ [1] Rcpp_1.0.0          lattice_0.20-35     tidyr_0.8.3        
+ [4] prettyunits_1.0.2   png_0.1-7           assertthat_0.2.0   
+ [7] rprojroot_1.2       digest_0.6.12       mime_0.5           
+[10] R6_2.2.2            plyr_1.8.4          backports_1.1.1    
+[13] evaluate_0.14       highr_0.6           pillar_1.3.1       
+[16] rlang_0.4.5         progress_1.2.2      lazyeval_0.2.1     
+[19] curl_3.3            rstudioapi_0.7      data.table_1.10.4-3
+[22] gifski_0.8.6        rmarkdown_2.1       labeling_0.3       
+[25] webshot_0.5.2       readr_1.3.1         stringr_1.4.0      
+[28] htmlwidgets_1.5.1   munsell_0.5.0       compiler_3.4.1     
+[31] httpuv_1.5.2        xfun_0.12           pkgconfig_2.0.2    
+[34] htmltools_0.4.0     tidyselect_0.2.5    tibble_2.0.1       
+[37] workflowr_1.6.0     viridisLite_0.3.0   crayon_1.3.4       
+[40] withr_2.1.1         later_1.0.0         MASS_7.3-47        
+[43] grid_3.4.1          xtable_1.8-2        gtable_0.2.0       
+[46] git2r_0.26.1        magrittr_1.5        stringi_1.3.1      
+[49] farver_2.0.3        fs_1.2.7            promises_1.1.0     
+[52] xml2_1.2.0          tools_3.4.1         glue_1.3.0         
+[55] tweenr_1.0.1        purrr_0.3.2         hms_0.4.2          
+[58] fastmap_1.0.1       yaml_2.2.0          colorspace_1.3-2   
+[61] rvest_0.3.2         knitr_1.27         </code></pre>
 </div>
 </div>
 

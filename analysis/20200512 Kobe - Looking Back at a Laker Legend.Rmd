@@ -46,6 +46,7 @@ library(dplyr)
 library(httr)
 library(jsonlite)
 library(scales)
+library(kableExtra)
 
 source("./code/20200512/court_themes.R")
 source("./code/20200512/plot_court.R")
@@ -440,7 +441,10 @@ kobe_fg_pct_table <- kobe_fg_pct %>% rename(`Shot Distance (ft)` = shot_distance
                                                    `EFG%` = efg_pct, `PPS` = pps, 
                                                    `Total Shots` = total_shots, 
                                                    `Percent of Total Shots` = pct_of_total) %>% as.data.frame()
-kobe_fg_pct_table
+
+kable(kobe_fg_pct_table) %>% 
+  kable_styling(latex_options = "scale_down") %>% 
+  scroll_box(height = "400px")
 
 ```
 
@@ -491,11 +495,14 @@ kobe_by_zone <- kobe_shots %>%
          pct_of_shots = round(prop.table(total_shots), 4)) %>%
   arrange(shot_zone_basic)
 
-kobe_by_zone %>% 
+kobe_by_zone_table <- kobe_by_zone %>% 
   mutate(pct_of_shots = scales::percent(pct_of_shots, accuracy = 0.01)) %>%
   rename(`Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct, 
          `PPS` = pps, `Total Shots` = total_shots, `Percent of Total Shots` = pct_of_shots) %>%
   as.data.frame()
+
+kable(kobe_by_zone_table) %>% 
+  kable_styling(latex_options = "scale_down")
 
 ```
 
@@ -761,13 +768,16 @@ winning_time_by_zone <- winning_time %>%
   arrange(shot_zone_basic) %>% 
   as.data.frame()
 
-winning_time_by_zone %>% 
+winning_time_by_zone_table <- winning_time_by_zone %>% 
   mutate(pct_of_shots = scales::percent(pct_of_shots, accuracy = 0.01), 
          `Game Period` = "Last 5 Minutes of 4th Quarter / OT") %>%
   rename(`Shot Zone` = shot_zone_basic, `FG%` = fg_pct, `EFG%` = efg_pct, 
          `PPS` = pps, `Total Shots` = total_shots, `Percent of Total Shots` = pct_of_shots) %>%
   select(`Shot Zone`:`Percent of Total Shots`) %>%
   as.data.frame()
+
+kable(winning_time_by_zone_table) %>% 
+  kable_styling(latex_options = "scale_down")
 
 ```
 

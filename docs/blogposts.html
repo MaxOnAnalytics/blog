@@ -27,6 +27,14 @@
 <link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
 <link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
 
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css">
   pre:not([class]) {
@@ -303,13 +311,6 @@ $(document).ready(function () {
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-<!-- Add a small amount of space between sections. -->
-<style type="text/css">
-div.section {
-  padding-top: 12px;
-}
-</style>
-
 <div class="fluid-row" id="header">
 
 
@@ -319,12 +320,696 @@ div.section {
 </div>
 
 
-<div class="row">
-<h2 id="kobe---looking-back-at-a-laker-legend"><a href="20200512-Kobe---Looking-Back-at-a-Laker-Legend.html">5/12/2020 - Kobe - Looking Back at a Laker Legend</a></h2>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2020-07-19
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 1 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
+</p>
+<p>
+<strong>Knit directory:</strong> <code>blog/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The R Markdown file has unstaged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcommaxonanalyticsblogtree9e2faad80d2351d5d9758ad9d6307ad7982f0330targetblank9e2faada"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/maxonanalytics/blog/tree/9e2faad80d2351d5d9758ad9d6307ad7982f0330" target="_blank">9e2faad</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcommaxonanalyticsblogtree9e2faad80d2351d5d9758ad9d6307ad7982f0330targetblank9e2faada" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/maxonanalytics/blog/tree/9e2faad80d2351d5d9758ad9d6307ad7982f0330" target="_blank">9e2faad</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+
+Untracked files:
+    Untracked:  analysis/20200719 Predicting the Next Best Fantasy WR.Rmd
+    Untracked:  code/20200715/
+    Untracked:  data/20200719/
+
+Unstaged changes:
+    Modified:   _workflowr.yml
+    Deleted:    analysis/20200323 Kobe - Looking Back at a Laker Legend.Rmd
+    Deleted:    analysis/20200414 Kobe - Looking Back at a Laker Legend.Rmd
+    Deleted:    analysis/20200426 Kobe - Looking Back at a Laker Legend.Rmd
+    Modified:   analysis/20200512 Kobe - Looking Back at a Laker Legend.Rmd
+    Modified:   analysis/blogposts.Rmd
+    Deleted:    analysis/license.Rmd
+    Deleted:    code/20200323/court_themes.R
+    Deleted:    code/20200323/fetch_shots.R
+    Deleted:    code/20200323/players_data.R
+    Deleted:    code/20200323/plot_court.R
+    Deleted:    code/20200414/court_themes.R
+    Deleted:    code/20200414/fetch_shots.R
+    Deleted:    code/20200414/players_data.R
+    Deleted:    code/20200414/plot_court.R
+    Deleted:    code/20200426/court_themes.R
+    Deleted:    code/20200426/fetch_shots.R
+    Deleted:    code/20200426/players_data.R
+    Deleted:    code/20200426/plot_court.R
+    Deleted:    data/20200323/kobe_shots.csv
+    Deleted:    data/20200414/kobe_shots.csv
+    Deleted:    data/20200426/kobe_shots.csv
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/blogposts.Rmd</code>) and HTML (<code>docs/blogposts.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/ca94a57584ae76c5ca7490ab43888995141c103a/docs/blogposts.html" target="_blank">ca94a57</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-05-12
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/87cf743ff4613a5f80a73ebd07048a5f6cdcc6fd/docs/blogposts.html" target="_blank">87cf743</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-05-12
+</td>
+<td>
+Update Kobe HTML
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/f4b0f4df0d5094952110969f5d7cb106a21cc098/docs/blogposts.html" target="_blank">f4b0f4d</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-05-12
+</td>
+<td>
+Update Kobe HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/4d2ca6fdc4ff309e286f3c3b2739b23516099438/analysis/blogposts.Rmd" target="_blank">4d2ca6f</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-05-12
+</td>
+<td>
+Final Kobe Post
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/75aa33169c01d0b32bf1124d70452ffddf83ce57/docs/blogposts.html" target="_blank">75aa331</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-26
+</td>
+<td>
+Update Kobe HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/e92cd2d3c4f8a5c245ccf30ba2ed421fbe71ed97/analysis/blogposts.Rmd" target="_blank">e92cd2d</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-26
+</td>
+<td>
+Add Shiny App Embedding
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/788bb15c54d260968979048901363e7bd795bb5b/docs/blogposts.html" target="_blank">788bb15</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-19
+</td>
+<td>
+Update Kobe HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/7b1ef73617f0cad5d1e3c0a709a3d37c7451bd1d/analysis/blogposts.Rmd" target="_blank">7b1ef73</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-19
+</td>
+<td>
+Add Shiny App Embedding
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/2425bae8cefdc75b210c2274004789d8b8728845/docs/blogposts.html" target="_blank">2425bae</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-05
+</td>
+<td>
+Center About Page Picture
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/98118338cddcee9ed5ff420c81ceadcf08cef9ef/docs/blogposts.html" target="_blank">9811833</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-04
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/5b92b8ff0de1af673ac92bbafa0817ff6ad0763b/docs/blogposts.html" target="_blank">5b92b8f</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-04
+</td>
+<td>
+Add Kobe Draft HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/617d978fffc28f330884c4ab22388d4b5d337a6e/analysis/blogposts.Rmd" target="_blank">617d978</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-04
+</td>
+<td>
+New Gif Folder References
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/f44c8f747c85747b2421045d288fb3188ce3e005/docs/blogposts.html" target="_blank">f44c8f7</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-03
+</td>
+<td>
+Add Kobe Draft HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/6ada691dc72083d1311a65b0be27b843d8e4207c/analysis/blogposts.Rmd" target="_blank">6ada691</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-03
+</td>
+<td>
+Add Opponent Breakdown
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/98dd75b578a62a476e190d1881a3de7824be1b3d/docs/blogposts.html" target="_blank">98dd75b</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-03
+</td>
+<td>
+Add Kobe Draft HTML
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/f5d15f461a94d0c7baabdb53174a46d0760e7287/docs/blogposts.html" target="_blank">f5d15f4</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-03
+</td>
+<td>
+Add Kobe Draft HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/53583b7e80f5100db47c9fc2d7aba3012b4ff84d/analysis/blogposts.Rmd" target="_blank">53583b7</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-04-03
+</td>
+<td>
+Add Opponent Breakdown
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/ebe067395f781bbf95f99543773609468a758415/docs/blogposts.html" target="_blank">ebe0673</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-31
+</td>
+<td>
+Add Kobe Draft HTML
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/8747b02777ad0d226ccdbcc76c92c2ad53a04865/docs/blogposts.html" target="_blank">8747b02</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-31
+</td>
+<td>
+Add Kobe Draft HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/e4fc919764cd5c1ad8369211d927c9d1ff1b1061/analysis/blogposts.Rmd" target="_blank">e4fc919</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-31
+</td>
+<td>
+Add Kobe Picture
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/105aa28c0490787167092f6ca828cc4162ed0f0c/docs/blogposts.html" target="_blank">105aa28</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-31
+</td>
+<td>
+Add Kobe Draft HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/e1cac6ba303428773aa9789c9e9471c739c6077e/analysis/blogposts.Rmd" target="_blank">e1cac6b</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-31
+</td>
+<td>
+Add Kobe Picture
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/6b2d55ff92d47a9c6dda77a669c5ecd051dd32d1/docs/blogposts.html" target="_blank">6b2d55f</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-23
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/6ae49b4eda83adc25c09b4022c444bb1922fc7df/docs/blogposts.html" target="_blank">6ae49b4</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-23
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/ab03d19979bf44494f59f833036acc5d1253f34e/docs/blogposts.html" target="_blank">ab03d19</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-23
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/b073ead69ad12ebd99f65aab99df6c01a891d7cb/docs/blogposts.html" target="_blank">b073ead</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-23
+</td>
+<td>
+Add Kobe Draft HTML
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/0d2454fd251eaffb04465ec3bb96294e0f8e5217/analysis/blogposts.Rmd" target="_blank">0d2454f</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-03-23
+</td>
+<td>
+Add Kobe Analysis Draft
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/58cde9d50596d928a61ac7e88f2bea0102e862f0/docs/blogposts.html" target="_blank">58cde9d</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-02-08
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/9ac533f4cac8cc2782808c238ef897cc06dc5faa/docs/blogposts.html" target="_blank">9ac533f</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-02-08
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/maxonanalytics/blog/6e4723b29a160775ed1f72ab8dca2070d085e300/docs/blogposts.html" target="_blank">6e4723b</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-02-08
+</td>
+<td>
+Build site.
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/maxonanalytics/blog/blob/0509363c0f2435b818a0236e3876cbd871246157/analysis/blogposts.Rmd" target="_blank">0509363</a>
+</td>
+<td>
+MaxOnAnalytics
+</td>
+<td>
+2020-02-08
+</td>
+<td>
+Update theme
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
 </div>
 <div class="row">
-<div class="col-md-6">
-<p><a href="20200512-Kobe---Looking-Back-at-a-Laker-Legend.html"><img src="assets/20200512/Kobe%20Bryant%20Picture.jpg" alt="5/12/2020 - Kobe - Looking Back at a Laker Legend" /></a></p>
+<div class="col-md-8">
+<h2 id="predicting-the-next-best-fantasy-wr"><a href="20200719-Predicting-the-Next-Best-Fantasy-WR.html">Predicting the Next Best Fantasy WR</a></h2>
+<h4 id="july-19-2020">July 19, 2020</h4>
+</div>
+</div>
+<div class="row">
+<div class="col-md-8">
+<p><a href="20200719-Predicting-the-Next-Best-Fantasy-WR.html"><img src="assets/20200719/Odell%20Beckham%20Draft.jpg" alt="Predicting the Next Best Fantasy WR" /></a></p>
+</div>
+</div>
+<div class="row">
+<div class="col-md-8">
+<h2 id="kobe---looking-back-at-a-laker-legend"><a href="20200512-Kobe---Looking-Back-at-a-Laker-Legend.html">Kobe - Looking Back at a Laker Legend</a></h2>
+<h4 id="may-12-2020">May 12, 2020</h4>
+</div>
+</div>
+<div class="row">
+<div class="col-md-8">
+<p><a href="20200512-Kobe---Looking-Back-at-a-Laker-Legend.html"><img src="assets/20200512/Kobe%20Bryant%20Picture.jpg" alt="Kobe - Looking Back at a Laker Legend" /></a></p>
 </div>
 </div>
 

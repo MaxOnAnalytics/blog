@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+<meta name="date" content="2020-07-19" />
+
+<title>Predicting the Next Best Fantasy WR</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/united.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+<script src="site_libs/core-js-2.5.3/shim.min.js"></script>
+<script src="site_libs/react-16.12.0/react.min.js"></script>
+<script src="site_libs/react-16.12.0/react-dom.min.js"></script>
+<script src="site_libs/reactwidget-1.0.0/react-tools.js"></script>
+<script src="site_libs/htmlwidgets-1.5.1/htmlwidgets.js"></script>
+<script src="site_libs/reactable-binding-0.2.0/reactable.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">MaxOn Analytics</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="blogposts.html">Blog Posts</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://www.linkedin.com/in/bryant-molloy-r95/">
+    <span class="fa fa-linkedin"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/maxonanalytics/blog">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Predicting the Next Best Fantasy WR</h1>
+<h4 class="date">July 19, 2020</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2020-07-19
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
+</p>
+<p>
+<strong>Knit directory:</strong> <code>blog/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The R Markdown is untracked by Git. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed12345code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(12345)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed12345code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(12345)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcommaxonanalyticsblogtree9e2faad80d2351d5d9758ad9d6307ad7982f0330targetblank9e2faada"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/maxonanalytics/blog/tree/9e2faad80d2351d5d9758ad9d6307ad7982f0330" target="_blank">9e2faad</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcommaxonanalyticsblogtree9e2faad80d2351d5d9758ad9d6307ad7982f0330targetblank9e2faada" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/maxonanalytics/blog/tree/9e2faad80d2351d5d9758ad9d6307ad7982f0330" target="_blank">9e2faad</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .Rhistory
+    Ignored:    .Rproj.user/
+
+Untracked files:
+    Untracked:  analysis/20200719 Predicting the Next Best Fantasy WR.Rmd
+    Untracked:  analysis/20200719-Predicting-the-Next-Best-Fantasy-WR.Rmd
+    Untracked:  code/20200715/
+    Untracked:  data/20200719/
+
+Unstaged changes:
+    Modified:   _workflowr.yml
+    Deleted:    analysis/20200323 Kobe - Looking Back at a Laker Legend.Rmd
+    Deleted:    analysis/20200414 Kobe - Looking Back at a Laker Legend.Rmd
+    Deleted:    analysis/20200426 Kobe - Looking Back at a Laker Legend.Rmd
+    Modified:   analysis/20200512 Kobe - Looking Back at a Laker Legend.Rmd
+    Modified:   analysis/blogposts.Rmd
+    Deleted:    analysis/license.Rmd
+    Deleted:    code/20200323/court_themes.R
+    Deleted:    code/20200323/fetch_shots.R
+    Deleted:    code/20200323/players_data.R
+    Deleted:    code/20200323/plot_court.R
+    Deleted:    code/20200414/court_themes.R
+    Deleted:    code/20200414/fetch_shots.R
+    Deleted:    code/20200414/players_data.R
+    Deleted:    code/20200414/plot_court.R
+    Deleted:    code/20200426/court_themes.R
+    Deleted:    code/20200426/fetch_shots.R
+    Deleted:    code/20200426/players_data.R
+    Deleted:    code/20200426/plot_court.R
+    Deleted:    data/20200323/kobe_shots.csv
+    Deleted:    data/20200414/kobe_shots.csv
+    Deleted:    data/20200426/kobe_shots.csv
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+<p>
+There are no past versions. Publish this analysis with <code>wflow_publish()</code> to start tracking its development.
+</p>
+<hr>
+</div>
+</div>
+</div>
+<center>
+<p><img src="assets/20200719/Odell%20Beckham%20Draft.jpg" /></p>
+</center>
+<p>As a kid who started regularly watching football in high school and whose favorite subject in school was always math, I quickly became hooked once I was introduced to fantasy football. The concept of using many sources of information – player statistics, team/coaching tendencies, role changes, injury news, fantasy analyst opinions, and even social media – to make draft day and lineup decisions and earn bragging rights over my friends intrigued me. While I didn’t build any actual models myself at the time, in a roundabout way, playing fantasy football was my first exposure to data-driven decision making, and now it has become an avenue where I can use my background in statistics and data analysis to develop strategies and gain an edge on the competition.</p>
+<p>I first started playing fantasy football in standard redraft leagues, in which you draft your team from scratch for one year, play out the season, and then pick an entirely new team from scratch again the next year. I typically play in 2 or 3 redraft leagues each year, and I really enjoy the banter that occurs between my friends and me during the fantasy season, not to mention the fact that it’s a great way to keep in touch. However, redraft leagues typically start in August and end in December, so there are a full 7 months of the year without fantasy drafts, trades, or trash talk.</p>
+<p>Enter dynasty leagues. A dynasty league involves a start-up draft consisting of all active NFL players. After the first season is played out and a champion is crowned, each team retains all of the players they had at the end of the season for the next year, along with any rookies they select in a 3-4 round rookie draft that takes place between the real NFL Draft and the start of the next NFL season. This has quickly become my favorite fantasy football format over redraft leagues, as I believe there is a lot more strategy involved when the age of players, length of contracts, and long-term outlooks come into play. Keeping players for multiple years allows you to become more invested in their careers, and depending on how involved you decide to be with trading players and picking players up off the waiver wire, a dynasty league can become a 365-day-a-year hobby. The dynasty format also places a huge emphasis on finding young talent in the start-up and rookie drafts to maintain prolonged success and attempt to build your “dynasty”. By doing your research and picking a stud 22-year-old running back or wide receiver in a dynasty rookie draft, you can fill a spot in your lineup for the next 7-8 years, and even if you completely whiff during the start-up draft (like I did in my first dynasty league), you can rebuild your team into a contender with just a few rookie draft steals.</p>
+<p>With rookie drafts being so important in dynasty, I decided to take a look at each position relevant to fantasy football – quarterback, running back, wide receiver, and tight end – to see how I can identify potentially undervalued rookie prospects for the upcoming 2020 season using statistical modeling. With 13 wide receivers picked in the first two rounds of the 2020 NFL Draft alone, a receiver success model seemed like a good place to start to try to extract value in this year’s rookie draft. While predictive power of the model is important, I am mainly interested in discovering which variables are most predictive of success, and I am willing to sacrifice some predictive power in exchange for model interpretability so it is easy to determine why my model likes or dislikes a prospect compared to consensus rankings.</p>
+<p>Over the next few sections, I’ll walk through the data I used to train this model, some of the statistical modeling techniques I used on training data, how each technique performed when making predictions on new data, and some of the variables (besides draft capital) that I found to be most predictive of early fantasy success. Then, I’ll take a look at how my model’s predictions on the 2017-2019 NFL Draft classes look so far and explain some of the model’s potential hits and misses, along with some possible ways to improve the model. Finally, I’ll share my predictions for the 2020 rookie class and decide who I am targeting and who I am avoiding based on their Average Draft Position (ADP) in 2020 rookie drafts.</p>
+<div id="data" class="section level1">
+<h1>Data</h1>
+<p>While there are a number of different metrics you can use to measure the success of football players on your fantasy roster, I decided on using average PPR (point per reception) points during the first four seasons of a player’s career as the target variable for my models. Contracts for drafted rookies are set at four years, with a fifth-year team option included for first round picks. By using each player’s first four years of fantasy production, I hope to capture the overall fantasy impact players make to start their careers, with the goal of selecting players who produce early on and will become staples of my fantasy roster long-term. Using average PPR points over the first four seasons rewards players who get off to quick starts and produce during their rookie seasons while penalizing late bloomers who don’t break out until their third or fourth seasons. I also considered using peak PPR points in a season as the target variable but decided that peak performance would be more appropriate for a model measuring upside rather than a model trying to predict sustained production, as I am looking to do here. For simplicity, I’ll refer to the target variable as “average PPR points” moving forward.</p>
+<p>My models were built using data from wide receivers drafted between 2008 and 2016. I scraped draft capital and NFL fantasy production data from <a href="pro-football-reference.com">pro-football-reference.com</a>. While there aren’t too many public data sources that include advanced metrics for college football, I found that <a href="https://docs.google.com/spreadsheets/d/19suThny5WpYuBpv7tKrLe6_qtj_j9DQxHA8vftjkRd0/edit#gid=946570566">Peter Howard’s Market Share Database</a> consisted of some useful rate statistics and breakdowns by year, as well as traditional stats and combine metrics. While it doesn’t include 100% of drafted receivers from 2008-2016 (I found that some receivers who either went to FCS schools or had less than two years of data at the Division 1 level were excluded), there are still 211 receivers over the nine drafts with enough data to be included in the modeling process. This is a small dataset, but it is one that will allow us to identify the predictive power of the variables strongly correlated with fantasy success.</p>
+<p>After cleaning up variable names and creating new variables through feature engineering, the following features were used in the modeling process:</p>
+<ul>
+<li><strong>Draft Capital</strong> – Draft Round, Draft Pick</li>
+<li><strong>Total Traditional Statistics</strong> – Receptions per Game, Receiving Yards per Game, Yards per Reception</li>
+<li><strong>Market Share Statistics</strong> – Yards per Team Pass Attempt, Yards per Team Pass Yard, Yards per Team Pass Attempt Above Team Average, Reception Share, Receiving Touchdown Share
+<ul>
+<li>Broken down by First Season, Last Season, Best Season, and Average Season</li>
+</ul></li>
+<li><strong>Combine Metrics</strong> – BMI, 40 Yard Dash, Height, Weight, Bench, Vertical, Broad Jump, Shuttle, 3 Cone, Weight Adjusted Speed Score, Height Adjusted Speed Score, Hand Size, Arm Length</li>
+<li><strong>Experience</strong> – Age in Draft Year, Years Played</li>
+<li><strong>Dominator Rating and Dominator Rating Over Average</strong>
+<ul>
+<li>Broken down by First Season, Last Season, Best Season, and Average Season</li>
+</ul></li>
+<li><strong>20% Breakout Age and 30% Breakout Age</strong></li>
+</ul>
+<p>The metrics in the last two bullet points are important and require some introduction.</p>
+<p>Dominator Rating for a receiver is defined as the percentage of his college team’s receiving yards and receiving touchdowns that the player accounts for. For example, if a player records 30% of his team’s total receiving yards and scores 20% of his team’s total receiving touchdowns for the season, he will have a dominator rating of 25% for the season.</p>
+<p><span class="math display">\[Dominator \: Rating = \frac { (\% \: of \: Team&#39;s \: Receiving \: Yards + \% \: of \: Team&#39;s \: Receiving \: Touchdowns)} {2}\]</span></p>
+<p>Related to Dominator Rating, 20% Breakout Age is the age at which a receiver records at least a 20% Dominator Rating (or a 30% Dominator Rating for 30% Breakout Age). These are great metrics to determine both how much of his team’s offense a player is responsible for in a given season and how early in his career a player becomes a focal point of his team’s offense.</p>
+<p>The next few sections will describe how each model was built and how the final model for prediction was selected. If the technical details behind the statistical modeling aren’t as interesting to you, please feel free to skip down to the 2017-2019 Predictions section for results and analysis.</p>
+</div>
+<div id="modeling" class="section level1">
+<h1>Modeling</h1>
+<p>For all upcoming models, I used the same 80/20 train-test split of the 211 observations, and I incorporated 10-fold cross-validation to tune model hyperparameters for the more complex models to optimize performance on unseen data. I started with a baseline linear regression model only consisting of draft capital. Then, I added the remaining variables into stepwise regression, elastic net, and random forest models, and compared test set performance between the models to determine which model was best suited for predicting on new data.</p>
+<div id="draft-pick-only-baseline" class="section level2">
+<h2>Draft Pick Only Baseline</h2>
+<p>Before throwing all the variables into a model, I wanted to take a look at a quick linear regression using only draft round and draft pick to predict average PPR points as a baseline model. When predicting this regression model on the test data, I get a root-mean-square error (RMSE) of 3.795, which is an accuracy metric measuring the difference between the values predicted by the model and the values observed. Additionally, when plotting the predictions from the baseline model against the actual average PPR points in the test set, I get an <span class="math inline">\(R^2\)</span> value of 0.26, meaning about 26% of the variability in a player’s average PPR points can be explained by the predictions from this baseline model only consisting of draft capital.</p>
+<p><img src="figure/20200719%20Predicting%20the%20Next%20Best%20Fantasy%20WR.Rmd/test-prediction-plot-draft-pick-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The blue line in the plot shows the line of best fit between the predictions and the actual values in the test set, while the dotted red line represents the “perfect prediction line”, where the model prediction exactly equals the actual value. In the subsequent, more advanced models, I will be looking for significant improvements in the RMSE and <span class="math inline">\(R^2\)</span> values when making predictions on the test data.</p>
+</div>
+<div id="stepwise-regression" class="section level2">
+<h2>Stepwise Regression</h2>
+<p>The first advanced modeling technique I decided to try using all variables was stepwise regression. Stepwise regression combines forward and backward selection techniques. It starts with only the most significant variable included in the model and either adds or subtracts a variable one-by-one based on which variable’s inclusion or exclusion most improves the model’s fit to the data according to a selected criterion (in this case, the Akaike Information Criterion, or AIC). The algorithm finishes once either adding or subtracting a variable from the final model would provide a worse fit to the data than the final model, based on AIC. While stepwise regression is a relatively fast way to select features, resulting models can suffer greatly from multicollinearity if highly correlated variables are included. This will skew variable coefficient estimates, make the model less interpretable, and may cause overfitting to the training data.</p>
+<p>Below are the coefficient estimates for the variables included in the final stepwise regression model.</p>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+171
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+.outcome
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+OLS linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+F(19,151)
+</td>
+<td style="text-align:right;">
+9.3400
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+R²
+</td>
+<td style="text-align:right;">
+0.5403
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Adj. R²
+</td>
+<td style="text-align:right;">
+0.4824
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+p
+</th>
+<th style="text-align:right;">
+VIF
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+2.2854
+</td>
+<td style="text-align:right;">
+0.0538
+</td>
+<td style="text-align:right;">
+42.4444
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+NA
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+<code>log(draft_round)</code>
+</td>
+<td style="text-align:right;">
+-0.3736
+</td>
+<td style="text-align:right;">
+0.0677
+</td>
+<td style="text-align:right;">
+-5.5142
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+1.5738
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+yds_per_tm_patt_best
+</td>
+<td style="text-align:right;">
+-0.7810
+</td>
+<td style="text-align:right;">
+0.4086
+</td>
+<td style="text-align:right;">
+-1.9115
+</td>
+<td style="text-align:right;">
+0.0578
+</td>
+<td style="text-align:right;">
+57.2361
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+yds_per_tm_patt_avg
+</td>
+<td style="text-align:right;">
+0.7352
+</td>
+<td style="text-align:right;">
+0.2280
+</td>
+<td style="text-align:right;">
+3.2244
+</td>
+<td style="text-align:right;">
+0.0015
+</td>
+<td style="text-align:right;">
+17.8241
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+yds_per_tm_patt_above_tmavg_first
+</td>
+<td style="text-align:right;">
+0.8246
+</td>
+<td style="text-align:right;">
+0.1896
+</td>
+<td style="text-align:right;">
+4.3495
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+12.3231
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+yds_per_tm_patt_above_tmavg_best
+</td>
+<td style="text-align:right;">
+1.4249
+</td>
+<td style="text-align:right;">
+0.4847
+</td>
+<td style="text-align:right;">
+2.9398
+</td>
+<td style="text-align:right;">
+0.0038
+</td>
+<td style="text-align:right;">
+80.5540
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+yds_per_tm_patt_above_tmavg_avg
+</td>
+<td style="text-align:right;">
+-1.7682
+</td>
+<td style="text-align:right;">
+0.3437
+</td>
+<td style="text-align:right;">
+-5.1447
+</td>
+<td style="text-align:right;">
+0.0000
+</td>
+<td style="text-align:right;">
+40.5058
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+dominator_best
+</td>
+<td style="text-align:right;">
+-1.2993
+</td>
+<td style="text-align:right;">
+0.4849
+</td>
+<td style="text-align:right;">
+-2.6795
+</td>
+<td style="text-align:right;">
+0.0082
+</td>
+<td style="text-align:right;">
+80.6206
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+dominator_avg
+</td>
+<td style="text-align:right;">
+-0.5135
+</td>
+<td style="text-align:right;">
+0.1871
+</td>
+<td style="text-align:right;">
+-2.7446
+</td>
+<td style="text-align:right;">
+0.0068
+</td>
+<td style="text-align:right;">
+12.0050
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+dom_oavg_first
+</td>
+<td style="text-align:right;">
+-0.5893
+</td>
+<td style="text-align:right;">
+0.1782
+</td>
+<td style="text-align:right;">
+-3.3069
+</td>
+<td style="text-align:right;">
+0.0012
+</td>
+<td style="text-align:right;">
+10.8874
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+dom_oavg_last
+</td>
+<td style="text-align:right;">
+-0.7268
+</td>
+<td style="text-align:right;">
+0.2737
+</td>
+<td style="text-align:right;">
+-2.6556
+</td>
+<td style="text-align:right;">
+0.0088
+</td>
+<td style="text-align:right;">
+25.6846
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+dom_oavg_avg
+</td>
+<td style="text-align:right;">
+0.8843
+</td>
+<td style="text-align:right;">
+0.2560
+</td>
+<td style="text-align:right;">
+3.4547
+</td>
+<td style="text-align:right;">
+0.0007
+</td>
+<td style="text-align:right;">
+22.4649
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+yds_per_tm_pyds_avg
+</td>
+<td style="text-align:right;">
+0.3833
+</td>
+<td style="text-align:right;">
+0.1698
+</td>
+<td style="text-align:right;">
+2.2578
+</td>
+<td style="text-align:right;">
+0.0254
+</td>
+<td style="text-align:right;">
+9.8813
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+x40_time
+</td>
+<td style="text-align:right;">
+-0.1769
+</td>
+<td style="text-align:right;">
+0.0619
+</td>
+<td style="text-align:right;">
+-2.8571
+</td>
+<td style="text-align:right;">
+0.0049
+</td>
+<td style="text-align:right;">
+1.3143
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+broad
+</td>
+<td style="text-align:right;">
+-0.1002
+</td>
+<td style="text-align:right;">
+0.0641
+</td>
+<td style="text-align:right;">
+-1.5642
+</td>
+<td style="text-align:right;">
+0.1199
+</td>
+<td style="text-align:right;">
+1.4070
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+breakout20_age
+</td>
+<td style="text-align:right;">
+-0.3904
+</td>
+<td style="text-align:right;">
+0.1532
+</td>
+<td style="text-align:right;">
+-2.5476
+</td>
+<td style="text-align:right;">
+0.0118
+</td>
+<td style="text-align:right;">
+8.0505
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+breakout20_flagYes
+</td>
+<td style="text-align:right;">
+-0.2076
+</td>
+<td style="text-align:right;">
+0.1078
+</td>
+<td style="text-align:right;">
+-1.9255
+</td>
+<td style="text-align:right;">
+0.0561
+</td>
+<td style="text-align:right;">
+3.9844
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+max_rec_share
+</td>
+<td style="text-align:right;">
+0.3769
+</td>
+<td style="text-align:right;">
+0.1480
+</td>
+<td style="text-align:right;">
+2.5463
+</td>
+<td style="text-align:right;">
+0.0119
+</td>
+<td style="text-align:right;">
+7.5118
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+max_rec_tds_share
+</td>
+<td style="text-align:right;">
+1.3190
+</td>
+<td style="text-align:right;">
+0.3408
+</td>
+<td style="text-align:right;">
+3.8706
+</td>
+<td style="text-align:right;">
+0.0002
+</td>
+<td style="text-align:right;">
+39.8179
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+max_tds_g
+</td>
+<td style="text-align:right;">
+0.1215
+</td>
+<td style="text-align:right;">
+0.0765
+</td>
+<td style="text-align:right;">
+1.5879
+</td>
+<td style="text-align:right;">
+0.1144
+</td>
+<td style="text-align:right;">
+2.0087
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; border: 0;" colspan="100%">
+<sup></sup> Standard errors: OLS
+</td>
+</tr>
+</tfoot>
+</table>
+<p>The most important part of this table, at least for this model, is the Variance Inflation Factor, or VIF, column. VIF measures multicollinearity between a variable and the remaining variables in a model. A VIF of 1 indicates that the variable is not correlated to other variables, while a VIF of greater than 5 indicates high multicollinearity and suggests that at least one variable should be removed from the model to address the issue. As you can see, nearly all the variables included in the stepwise regression have a VIF of greater than 5, as there are many variables included in the data that are highly correlated to each other. For example, best Dominator Rating is going to be highly correlated with best yards per team pass attempt, since Dominator Rating is calculated partially based on a player’s market share of his team’s total receiving production. Because of this, many predictors have unstable coefficient estimates and would have to be removed for the model to not grossly overfit the training data. However, for now, I’ll keep all the selected variables to show the effect of not dealing with multicollinearity when predicting on new data.</p>
+<p><img src="figure/20200719%20Predicting%20the%20Next%20Best%20Fantasy%20WR.Rmd/test-predictions-plot-stepwise-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Using the same prediction vs. actual performance plot that was created for the baseline model, it is easy to see how the stepwise regression model stacks up when predicting on new data. The RMSE value of 4.821 (compared to 3.795 in the baseline) and <span class="math inline">\(R^2\)</span> value of 0.071 (compared to 0.26 in the baseline) show how much the stepwise regression overfit the training data due to many highly correlated variables, and is thus not suited to make predictions on unseen data. While one possible solution would be to manually remove some of the highly correlated variables from the stepwise model and refit, the next modeling technique I used is better equipped to solve this issue.</p>
+</div>
+<div id="elastic-net" class="section level2">
+<h2>Elastic Net</h2>
+<p>Regularization in machine learning is a way of making a statistical model less complex to avoid overfitting and improve generalizability to unseen data. This is often done by reducing coefficient estimates through penalties, also known as shrinking, and can work especially well when there is high multicollinearity between model variables.</p>
+<p>Elastic net is a combination of two penalization techniques – ridge regression and LASSO. I won’t go into extreme detail about how these penalization techniques work. However, I’ll note that ridge regression reduces model complexity by shrinking variables but never shrinks them all the way to zero, while LASSO can shrink variables to zero and thus can be useful for feature selection purposes. The elastic net algorithm iterates through a collection of alpha and lambda hyperparameters to choose the combination that best represents the training data while implementing both ridge and LASSO penalization techniques.</p>
+<p>In this case, the final model selected by the elastic net algorithm has an alpha value of 1 and lambda value of 0.1, which corresponds with a LASSO model. Below are the variables included in the final elastic net model, sorted by their relative importance.</p>
+<p><img src="figure/20200719%20Predicting%20the%20Next%20Best%20Fantasy%20WR.Rmd/enet-variable-importance-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>While draft round and draft pick are still considered the two most important variables, there are some interesting conclusions we can make from the other variables in the model. The inclusion of 20% Breakout Age, 30% Breakout Age, and Yards per Team Pass Yards (1st Season) indicate the importance of reaching specific production benchmarks early on in a player’s college career for achieving future success in the NFL. Age in Draft Year alludes to younger prospects, and specifically prospects who declare for the draft before their college eligibility is up, being more likely to succeed early in their NFL careers. Finally, Yards per Team Pass Attempt (Average Season) and Average Dominator Rating suggest that sustained production throughout the prospect’s college career is also important for predicting NFL success, although perhaps not quite as important as early college production.</p>
+<p><img src="figure/20200719%20Predicting%20the%20Next%20Best%20Fantasy%20WR.Rmd/test-predictions-plot-enet-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Once again plotting predictions vs. actual performance for the test data, this time I find that the elastic net model was a significant improvement over the baseline model, as it appears that the regularization worked well for generalizing to unseen data. With an RMSE of 3.434 and an <span class="math inline">\(R^2\)</span> value of 0.4, the elastic net has become the model to beat with one modeling technique remaining to test.</p>
+</div>
+<div id="random-forest" class="section level2">
+<h2>Random Forest</h2>
+<p>The final and most complex algorithm I used to evaluate predictions on the test data was a random forest. Random forests are constructed by building hundreds of decision trees consisting of randomly selected features and averaging the results of all the trees to produce a final prediction. By combining the predictions of so many decision trees, a random forest creates an ensemble model that reduces overfitting and is often quite a powerful predictor. Random forests can be less interpretable than parametric models such as an elastic net model, since it is nearly impossible to visualize the many trees that make up the forest. However, while interpretability is one of the main objectives of this model, I wanted to try a random forest as well just because it often is such a powerful and flexible technique.</p>
+<p>After building an initial random forest model with all variables included, I plotted the variables in order of importance, then rebuilt the random forest including only the 20 most important variables, which are shown below. While multicollinearity shouldn’t have a huge effect on the predictions made by a random forest model, since each decision tree in the forest consists of a different set of variables, it will affect variable importance, so it is best to not rely on this variable importance plot until all highly correlated variables are removed from the model.</p>
+<p><img src="figure/20200719%20Predicting%20the%20Next%20Best%20Fantasy%20WR.Rmd/rf-20-variable-importance-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>When plotting predictions on the test set against actual values, I see that the random forest performs better than the baseline model but not as well as the elastic net, with an RMSE of 3.493 and an <span class="math inline">\(R^2\)</span> value of 0.35. Because the elastic net is the most interpretable model that also performs well on the test data, I will use that going forward to make predictions on the 2017-2020 rookie wide receivers.</p>
+<p><img src="figure/20200719%20Predicting%20the%20Next%20Best%20Fantasy%20WR.Rmd/test-predictions-plot-rf-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="draft-predictions" class="section level1">
+<h1>2017-2019 Draft Predictions</h1>
+<p>Now that the modeling process is over (for now), let’s take a look at how the 2017, 2018, and 2019 wide receiver classes stack up according to my final model. I included two tables that show average PPR PPG so far and the model’s prediction for each player. The first table also includes draft capital data, while the second table includes all other variables from the model, which we can use to analyze potential hits and misses from each draft and brainstorm ways that the model could possibly be improved in the future.</p>
+<p><div id="htmlwidget-985d02bf98ed361487ad" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-985d02bf98ed361487ad">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Player":["COREY DAVIS","NKEAL HARRY","DJ MOORE","MIKE WILLIAMS","CALVIN RIDLEY","JOHN ROSS","MARQUISE BROWN","CHRISTIAN KIRK","JUJU SMITH-SCHUSTER","JAMES WASHINGTON","CURTIS SAMUEL","JJ ARCEGA-WHITESIDE","COURTLAND SUTTON","ZAY JONES","AJ BROWN","DJ CHARK","ANDY ISABELLA","MICHAEL GALLUP","DANTE PETTIS","DK METCALF","TREQUAN SMITH","ANTHONY MILLER","CHRIS GODWIN","ANTONIO CALLAWAY","KENNY GOLLADAY","PARRIS CAMPBELL","COOPER KUPP","TAYWAN TAYLOR","MECOLE HARDMAN","CHAD WILLIAMS","DEEBO SAMUEL","JOSH REYNOLDS","AMARA DARBOH","DIONTAE JOHNSON","DAESEAN HAMILTON","JOSH MALONE","KEKE COUTEE","MILES BOYKIN","ISAIAH FORD","KEESEAN JOHNSON","MACK HOLLINS","JUSTIN WATSON","KELVIN HARMON","DEDE WESTBROOK","ARDARIUS STEWART","RYAN SWITZER","JMON MOORE","EQUANIMEOUS ST BROWN","GARY JENNINGS","CHAD HANSEN","DARIUS SLAYTON","RICHIE JAMES","SHELTON GIBSON","TRENT TAYLOR","JEHU CHESSON","SCOTT MILLER","AUDEN TATE","TERRY MCLAURIN","DEON CAIN","RILEY RIDLEY","ISAIAH MCKENZIE","RAY-RAY MCCLOUD","NOAH BROWN","TREY QUINN","RUSSELL GAGE","MARQUEZ VALDES-SCANTLING","DAMION RATLEY","JAVON WIMS","MARCELL ATEMAN","JOHN URSUA"],"School":["West Michigan","Arizona St","Maryland","Clemson","Alabama","Washington","Oklahoma","Texas A&M","USC","Oklahoma St","Ohio St","Stanford","SMU","East Carolina","Mississippi","LSU","Massachusetts","Colorado St","Washington","Mississippi","Central Florida","Memphis","Penn St","Florida","Northern Illinois","Ohio St","East Washington","Western Kentucky","Georgia","Grambling St","South Carolina","Texas A&M","Michigan","Toledo","Penn St","Tennessee","Texas Tech","Notre Dame","Virginia Tech","Fresno St","North Carolina","Pennsylvania","North Carolina St","Oklahoma","Alabama","North Carolina","Missouri","Notre Dame","West Virginia","California","Auburn","Middle Tenn St","West Virginia","Louisiana Tech","Michigan","Bowling Green","Florida St","Ohio St","Clemson","Georgia","Georgia","Clemson","Ohio St","SMU","LSU","South Florida","Texas A&M","Georgia","Oklahoma St","Hawaii"],"Draft Year":[2017,2019,2018,2017,2018,2017,2019,2018,2017,2018,2017,2019,2018,2017,2019,2018,2019,2018,2018,2019,2018,2018,2017,2018,2017,2019,2017,2017,2019,2017,2019,2017,2017,2019,2018,2017,2018,2019,2017,2019,2017,2018,2019,2017,2017,2017,2018,2018,2019,2017,2019,2018,2017,2017,2017,2019,2018,2019,2018,2019,2017,2018,2017,2018,2018,2018,2018,2018,2018,2019],"Draft Round":[1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,3,2,2,3,2,3,4,3,2,3,3,2,3,2,4,3,3,4,4,4,3,7,6,4,5,6,4,3,4,4,6,4,4,5,7,5,5,4,6,7,3,6,4,5,6,7,7,6,5,6,7,7,7],"Draft Pick":[5,32,24,7,26,9,25,47,62,60,40,57,40,37,51,61,62,81,44,64,91,51,84,105,96,59,69,72,56,98,36,117,106,66,113,128,103,93,237,174,118,144,206,110,79,133,133,207,120,141,171,240,166,177,139,208,253,76,185,126,172,187,239,256,194,174,175,224,228,236],"Average PPR PPG":[8.77,5.63,12.5,8.83,13.92,7.46,10.46,11.67,14.47,6.11,8.98,2.06,11.21,6.19,13.57,9.82,2.36,10.35,6,11.69,6.62,7.99,12.04,7.46,13.09,5.44,14.94,4.28,7.47,2.96,12.61,3.94,0.94,10.19,4.33,0.94,7.7,3.17,5.39,4.6,2.1,1.59,4.18,10.61,1.13,2.31,0.12,4.52,0,1.23,12.14,2.01,0.44,5.22,0.21,4.06,5.74,13.71,1.65,2.58,3.5,0.31,0.84,4.95,3.58,6.1,2.52,2.49,2.83,0.7],"Model Prediction":[11.75,9.77,9.46,9.07,8.68,8.41,8.22,8.11,7.59,7.11,6.98,6.93,6.74,6.66,6.49,6.39,6.38,6.38,6.33,6.28,6.14,6.08,6.04,5.66,5.58,5.53,5.44,5.43,5.37,5.3,5.29,5.16,5.14,4.82,4.81,4.76,4.73,4.67,4.63,4.3,4.23,4.18,4.18,4.16,4.15,4.12,4.06,3.99,3.99,3.96,3.95,3.93,3.92,3.87,3.86,3.85,3.66,3.65,3.62,3.55,3.53,3.22,3.2,3.05,2.7,2.68,2.62,2.58,2.53,2.5]},"columns":[{"accessor":"Player","name":"Player","type":"character","className":"cell","headerClassName":"header","width":150,"align":"center"},{"accessor":"School","name":"School","type":"character","className":"cell","headerClassName":"header","width":150,"align":"center"},{"accessor":"Draft Year","name":"Draft Year","type":"numeric","className":"cell","headerClassName":"header","filterable":true,"width":70,"align":"center"},{"accessor":"Draft Round","name":"Draft Round","type":"numeric","className":"cell","headerClassName":"header","filterable":true,"width":70,"align":"center"},{"accessor":"Draft Pick","name":"Draft Pick","type":"numeric","className":"cell","headerClassName":"header","filterable":true,"width":70,"align":"center"},{"accessor":"Average PPR PPG","name":"Average PPR PPG","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#8DD1AB"},{"background":"#B3E1B0"},{"background":"#58BDAB"},{"background":"#8CD0AB"},{"background":"#43B5AB"},{"background":"#9DD8AC"},{"background":"#75C7AB"},{"background":"#64C1AB"},{"background":"#3BB2AB"},{"background":"#ADDFAF"},{"background":"#8ACFAB"},{"background":"#E1F4C5"},{"background":"#6AC3AB"},{"background":"#ACDEAF"},{"background":"#48B7AB"},{"background":"#7ECBAB"},{"background":"#DDF3C2"},{"background":"#77C8AB"},{"background":"#AEDFAF"},{"background":"#63C1AB"},{"background":"#A7DCAE"},{"background":"#97D5AB"},{"background":"#5EBFAB"},{"background":"#9DD8AC"},{"background":"#4FB9AB"},{"background":"#B5E2B0"},{"background":"#35B0AB"},{"background":"#C2E9B2"},{"background":"#9DD8AC"},{"background":"#D4F0BC"},{"background":"#56BCAB"},{"background":"#C6EAB3"},{"background":"#F1FAD1"},{"background":"#79C9AB"},{"background":"#C2E8B2"},{"background":"#F1FAD1"},{"background":"#9BD6AC"},{"background":"#D1EFBA"},{"background":"#B5E3B0"},{"background":"#BEE7B2"},{"background":"#E0F4C5"},{"background":"#E8F7CA"},{"background":"#C3E9B3"},{"background":"#73C7AB"},{"background":"#EFF9CF"},{"background":"#DDF3C3"},{"background":"#FDFEF9"},{"background":"#BFE7B2"},{"background":"#FFFFFF"},{"background":"#EDF9CE"},{"background":"#5DBEAB"},{"background":"#E2F5C6"},{"background":"#F8FDE9"},{"background":"#B7E4B1"},{"background":"#FCFEF4"},{"background":"#C5EAB3"},{"background":"#B1E1B0"},{"background":"#46B6AB"},{"background":"#E7F7CA"},{"background":"#D9F2C0"},{"background":"#CCEDB6"},{"background":"#FAFDF0"},{"background":"#F3FBD6"},{"background":"#BAE5B1"},{"background":"#CBECB5"},{"background":"#ADDFAF"},{"background":"#DAF2C1"},{"background":"#DBF2C1"},{"background":"#D6F0BD"},{"background":"#F5FCDD"}]},{"accessor":"Model Prediction","name":"Model Prediction","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#62C1AB"},{"background":"#7FCBAB"},{"background":"#83CDAB"},{"background":"#89CFAB"},{"background":"#8FD1AB"},{"background":"#92D2AB"},{"background":"#95D3AB"},{"background":"#96D4AB"},{"background":"#9CD7AC"},{"background":"#A1D9AD"},{"background":"#A3DAAD"},{"background":"#A4DAAD"},{"background":"#A6DBAE"},{"background":"#A7DCAE"},{"background":"#A9DDAE"},{"background":"#AADDAE"},{"background":"#AADDAE"},{"background":"#AADDAE"},{"background":"#AADEAE"},{"background":"#ABDEAF"},{"background":"#ADDFAF"},{"background":"#ADDFAF"},{"background":"#AEDFAF"},{"background":"#B2E1B0"},{"background":"#B3E2B0"},{"background":"#B4E2B0"},{"background":"#B5E2B0"},{"background":"#B5E2B0"},{"background":"#B6E3B0"},{"background":"#B6E3B0"},{"background":"#B7E3B1"},{"background":"#B8E4B1"},{"background":"#B8E4B1"},{"background":"#BCE6B1"},{"background":"#BCE6B1"},{"background":"#BDE6B2"},{"background":"#BDE6B2"},{"background":"#BEE6B2"},{"background":"#BEE7B2"},{"background":"#C2E8B2"},{"background":"#C3E9B3"},{"background":"#C3E9B3"},{"background":"#C3E9B3"},{"background":"#C4E9B3"},{"background":"#C4E9B3"},{"background":"#C4E9B3"},{"background":"#C5EAB3"},{"background":"#C6EAB3"},{"background":"#C6EAB3"},{"background":"#C6EAB3"},{"background":"#C6EAB3"},{"background":"#C6EAB3"},{"background":"#C6EBB3"},{"background":"#C7EBB3"},{"background":"#C7EBB3"},{"background":"#C7EBB3"},{"background":"#CAECB4"},{"background":"#CAECB4"},{"background":"#CAECB5"},{"background":"#CBECB5"},{"background":"#CCEDB6"},{"background":"#D0EEB9"},{"background":"#D0EEB9"},{"background":"#D3EFBB"},{"background":"#D8F1BF"},{"background":"#D8F1BF"},{"background":"#D9F1BF"},{"background":"#D9F2C0"},{"background":"#DAF2C0"},{"background":"#DBF2C1"}]}],"columnGroups":[{"headerClassName":"group-header","name":"Player Info","columns":["Player","School"]},{"headerClassName":"group-header","name":"Draft Capital","columns":["Draft Year","Draft Round","Draft Pick"]},{"headerClassName":"group-header","name":"Performance in First 4 Seasons","columns":["Average PPR PPG","Model Prediction"]}],"defaultSortDesc":true,"defaultSorted":[{"id":"Model Prediction","desc":true}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"style":{"fontFamily":"Work Sans, sans-serif","fontSize":"10px"},"dataKey":"c0fcc5b5d69d5216cd39a27b90ef8be8"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script><div id="htmlwidget-9fb972d4683b4ee58078" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-9fb972d4683b4ee58078">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Player":["COREY DAVIS","NKEAL HARRY","DJ MOORE","MIKE WILLIAMS","CALVIN RIDLEY","JOHN ROSS","MARQUISE BROWN","CHRISTIAN KIRK","JUJU SMITH-SCHUSTER","JAMES WASHINGTON","CURTIS SAMUEL","JJ ARCEGA-WHITESIDE","COURTLAND SUTTON","ZAY JONES","AJ BROWN","DJ CHARK","ANDY ISABELLA","MICHAEL GALLUP","DANTE PETTIS","DK METCALF","TREQUAN SMITH","ANTHONY MILLER","CHRIS GODWIN","ANTONIO CALLAWAY","KENNY GOLLADAY","PARRIS CAMPBELL","COOPER KUPP","TAYWAN TAYLOR","MECOLE HARDMAN","CHAD WILLIAMS","DEEBO SAMUEL","JOSH REYNOLDS","AMARA DARBOH","DIONTAE JOHNSON","DAESEAN HAMILTON","JOSH MALONE","KEKE COUTEE","MILES BOYKIN","ISAIAH FORD","KEESEAN JOHNSON","MACK HOLLINS","JUSTIN WATSON","KELVIN HARMON","DEDE WESTBROOK","ARDARIUS STEWART","RYAN SWITZER","JMON MOORE","EQUANIMEOUS ST BROWN","GARY JENNINGS","CHAD HANSEN","DARIUS SLAYTON","RICHIE JAMES","SHELTON GIBSON","TRENT TAYLOR","JEHU CHESSON","SCOTT MILLER","AUDEN TATE","TERRY MCLAURIN","DEON CAIN","RILEY RIDLEY","ISAIAH MCKENZIE","RAY-RAY MCCLOUD","NOAH BROWN","TREY QUINN","RUSSELL GAGE","MARQUEZ VALDES-SCANTLING","DAMION RATLEY","JAVON WIMS","MARCELL ATEMAN","JOHN URSUA"],"20% Breakout Age":[18,18,19,19,20,21,21,18,19,18,19,19,19,20,20,19,19,20,20,19,19,21,19,18,21,21,20,20,"NA",19,22,19,20,21,19,20,20,21,18,19,20,20,19,22,22,21,20,19,21,21,20,19,20,20,21,19,20,"NA",20,22,21,"NA",20,21,"NA",23,"NA",22,22,22],"Yds / Team Pass Yd (1st Season)":[0.372,0.211,0.171,0.073,0.307,0.061,0.216,0.304,0.188,0.145,0.118,0.184,0.013,0.142,0.109,0.005,0.002,0.401,0.092,0.003,0.322,0.174,0.111,0.234,0.387,0.044,0.322,0.086,0.158,0.064,0.065,0.212,0.232,0.065,0.296,0.079,0.021,0.027,0.251,0.157,0.17,0.181,0.136,0.185,0.038,0.095,0.012,0.002,0.035,0.051,0.133,0.33,0.015,0.107,0.069,0.006,0.119,0.041,0.133,0.095,0.026,0.057,0.002,0.091,0.027,0.097,0.06,0.076,0.077,0.199],"Age in Draft Year":[22,21,21,22,23,22,22,21,20,22,21,22,22,22,22,21,22,22,22,21,22,23,21,21,23,22,24,22,22,22,23,22,23,23,23,21,21,22,21,22,23,23,21,23,23,22,23,21,22,22,22,23,22,23,23,22,21,23,22,23,22,21,21,22,22,24,23,23,23,25],"30% Breakout Age":[18,19,19,"NA",20,21,"NA",19,19,20,"NA",20,19,21,20,"NA",20,20,21,"NA",19,21,19,"NA",21,"NA",20,20,"NA",20,"NA",21,22,21,"NA",20,20,21,19,19,"NA",20,"NA",22,"NA","NA",21,19,"NA","NA","NA",20,20,21,21,19,20,"NA","NA","NA",21,"NA","NA",21,"NA","NA","NA","NA","NA",23],"Yds / Team Pass Att (Average Season)":[3.365,2.348,2.013,1.286,2.361,1.417,2.913,2.04,2.236,2.323,1.509,1.936,1.852,1.968,2.248,1.506,2.071,3.306,1.474,0.937,1.013,2.498,1.977,1.718,2.842,1.166,1.109,2.092,1.528,0.299,1.258,1.912,1.844,1.809,1.605,1.395,1.392,1.005,2.26,2.027,1.235,1.326,1.904,2.838,1.324,1.592,1.45,1.324,1.255,1.233,1.488,2.07,1.503,2.096,1.057,1.702,1.282,0.851,1.276,0.961,0.744,0.768,0.505,1.184,0.579,1.215,1.934,1.435,1.256,1.847],"Average Dominator Rating":[0.455,0.343,0.352,0.158,0.285,0.187,0.222,0.327,0.265,0.289,0.201,0.329,0.286,0.241,0.249,0.161,0.268,0.374,0.189,0.144,0.319,0.319,0.26,0.214,0.418,0.118,0.368,0.222,0.175,0.288,0.167,0.302,0.261,0.241,0.208,0.184,0.158,0.147,0.355,0.302,0.187,0.407,0.25,0.264,0.168,0.178,0.199,0.179,0.132,0.165,0.187,0.25,0.204,0.263,0.144,0.256,0.268,0.126,0.199,0.14,0.128,0.073,0.104,0.137,0.099,0.138,0.418,0.175,0.115,0.249],"Average PPR PPG":[8.77,5.63,12.5,8.83,13.92,7.46,10.46,11.67,14.47,6.11,8.98,2.06,11.21,6.19,13.57,9.82,2.36,10.35,6,11.69,6.62,7.99,12.04,7.46,13.09,5.44,14.94,4.28,7.47,2.96,12.61,3.94,0.94,10.19,4.33,0.94,7.7,3.17,5.39,4.6,2.1,1.59,4.18,10.61,1.13,2.31,0.12,4.52,0,1.23,12.14,2.01,0.44,5.22,0.21,4.06,5.74,13.71,1.65,2.58,3.5,0.31,0.84,4.95,3.58,6.1,2.52,2.49,2.83,0.7],"Model Prediction":[11.75,9.77,9.46,9.07,8.68,8.41,8.22,8.11,7.59,7.11,6.98,6.93,6.74,6.66,6.49,6.39,6.38,6.38,6.33,6.28,6.14,6.08,6.04,5.66,5.58,5.53,5.44,5.43,5.37,5.3,5.29,5.16,5.14,4.82,4.81,4.76,4.73,4.67,4.63,4.3,4.23,4.18,4.18,4.16,4.15,4.12,4.06,3.99,3.99,3.96,3.95,3.93,3.92,3.87,3.86,3.85,3.66,3.65,3.62,3.55,3.53,3.22,3.2,3.05,2.7,2.68,2.62,2.58,2.53,2.5]},"columns":[{"accessor":"Player","name":"Player","type":"character","className":"cell","headerClassName":"header","width":150,"align":"center"},{"accessor":"20% Breakout Age","name":"20% Breakout Age","type":"numeric","className":"cell","headerClassName":"header","width":70,"align":"center","style":[{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#35B0AB"},{"background":"#BAE5B1"},{"background":"#35B0AB"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#35B0AB"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#FFFFFF"},{"background":"#BAE5B1"},{"background":"#F9FDEA"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#35B0AB"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#F9FDEA"},{"background":"#F9FDEA"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#F9FDEA"},{"background":"#F3FBD5"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#F9FDEA"},{"background":"#F9FDEA"},{"background":"#F9FDEA"}]},{"accessor":"Yds / Team Pass Yd (1st Season)","name":"Yds / Team Pass Yd (1st Season)","type":"numeric","className":"cell","headerClassName":"header","width":70,"align":"center","style":[{"background":"#44B5AB"},{"background":"#99D6AC"},{"background":"#ABDEAF"},{"background":"#D8F1BF"},{"background":"#67C2AB"},{"background":"#DFF4C4"},{"background":"#97D5AB"},{"background":"#69C3AB"},{"background":"#A3DAAD"},{"background":"#B6E3B0"},{"background":"#C1E8B2"},{"background":"#A5DBAE"},{"background":"#F9FDEB"},{"background":"#B7E3B1"},{"background":"#C5EAB3"},{"background":"#FDFEF9"},{"background":"#FFFFFF"},{"background":"#35B0AB"},{"background":"#CEEDB7"},{"background":"#FEFEFD"},{"background":"#5FBFAB"},{"background":"#A9DDAE"},{"background":"#C4EAB3"},{"background":"#8ED1AB"},{"background":"#3CB2AB"},{"background":"#E8F7CB"},{"background":"#5FBFAB"},{"background":"#D1EFBA"},{"background":"#B0E0AF"},{"background":"#DDF3C3"},{"background":"#DDF3C2"},{"background":"#99D5AC"},{"background":"#90D1AB"},{"background":"#DDF3C2"},{"background":"#6DC5AB"},{"background":"#D5F0BD"},{"background":"#F5FBDC"},{"background":"#F1FAD1"},{"background":"#85CEAB"},{"background":"#B1E0B0"},{"background":"#ABDEAF"},{"background":"#A6DCAE"},{"background":"#BAE5B1"},{"background":"#A4DBAD"},{"background":"#EBF8CD"},{"background":"#CCEDB6"},{"background":"#F9FDEC"},{"background":"#FFFFFF"},{"background":"#EDF9CE"},{"background":"#E4F6C8"},{"background":"#BBE5B1"},{"background":"#5BBEAB"},{"background":"#F8FCE7"},{"background":"#C6EAB3"},{"background":"#DAF2C1"},{"background":"#FCFEF7"},{"background":"#C1E8B2"},{"background":"#EAF8CC"},{"background":"#BBE5B1"},{"background":"#CCEDB6"},{"background":"#F2FBD3"},{"background":"#E1F4C5"},{"background":"#FFFFFF"},{"background":"#CEEEB8"},{"background":"#F1FAD1"},{"background":"#CBECB5"},{"background":"#DFF4C4"},{"background":"#D7F1BE"},{"background":"#D6F0BD"},{"background":"#9ED8AC"}]},{"accessor":"Age in Draft Year","name":"Age in Draft Year","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#35B0AB"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#F9FDEA"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#F9FDEA"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#FFFFFF"}]},{"accessor":"30% Breakout Age","name":"30% Breakout Age","type":"numeric","className":"cell","headerClassName":"header","width":70,"align":"center","style":[{"background":"#35B0AB"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#FFFFFF"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#BAE5B1"},{"background":"#F3FBD5"},{"background":"#DCF3C2"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#FFFFFF"},{"background":"#BAE5B1"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#FFFFFF"},{"background":"#F3FBD5"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#FFFFFF"},{"background":"#F3FBD5"},{"background":"#F9FDEA"},{"background":"#F3FBD5"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#BAE5B1"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#FFFFFF"},{"background":"#F9FDEA"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#DCF3C2"},{"background":"#DCF3C2"},{"background":"#F3FBD5"},{"background":"#F3FBD5"},{"background":"#BAE5B1"},{"background":"#DCF3C2"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#F3FBD5"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#F3FBD5"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"}]},{"accessor":"Yds / Team Pass Att (Average Season)","name":"Yds / Team Pass Att (Average Season)","type":"numeric","className":"cell","headerClassName":"header","width":70,"align":"center","style":[{"background":"#35B0AB"},{"background":"#7CCAAB"},{"background":"#93D3AB"},{"background":"#BCE6B1"},{"background":"#7BCAAB"},{"background":"#B5E2B0"},{"background":"#54BBAB"},{"background":"#91D2AB"},{"background":"#84CDAB"},{"background":"#7ECBAB"},{"background":"#B0E0AF"},{"background":"#97D5AB"},{"background":"#9CD7AC"},{"background":"#96D4AB"},{"background":"#83CDAB"},{"background":"#B0E0AF"},{"background":"#8FD1AB"},{"background":"#39B1AB"},{"background":"#B1E1B0"},{"background":"#D2EFBA"},{"background":"#CCEDB6"},{"background":"#71C6AB"},{"background":"#95D4AB"},{"background":"#A4DAAD"},{"background":"#59BDAB"},{"background":"#C3E9B3"},{"background":"#C6EAB3"},{"background":"#8ED1AB"},{"background":"#AEDFAF"},{"background":"#FFFFFF"},{"background":"#BEE6B2"},{"background":"#99D5AC"},{"background":"#9DD7AC"},{"background":"#9FD8AD"},{"background":"#AADDAE"},{"background":"#B6E3B0"},{"background":"#B6E3B0"},{"background":"#CDEDB7"},{"background":"#82CCAB"},{"background":"#92D2AB"},{"background":"#BFE7B2"},{"background":"#BAE5B1"},{"background":"#99D6AC"},{"background":"#59BDAB"},{"background":"#BAE5B1"},{"background":"#ABDEAF"},{"background":"#B3E1B0"},{"background":"#BAE5B1"},{"background":"#BEE7B2"},{"background":"#BFE7B2"},{"background":"#B1E0B0"},{"background":"#8FD1AB"},{"background":"#B0E0AF"},{"background":"#8DD1AB"},{"background":"#C9ECB4"},{"background":"#A5DBAE"},{"background":"#BCE6B1"},{"background":"#D8F1BF"},{"background":"#BDE6B2"},{"background":"#D0EEB9"},{"background":"#DFF4C4"},{"background":"#DEF3C3"},{"background":"#F0FAD1"},{"background":"#C2E8B2"},{"background":"#EBF8CD"},{"background":"#C0E8B2"},{"background":"#98D5AB"},{"background":"#B4E2B0"},{"background":"#BEE7B2"},{"background":"#9CD7AC"}]},{"accessor":"Average Dominator Rating","name":"Average Dominator Rating","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#35B0AB"},{"background":"#73C7AB"},{"background":"#6EC5AB"},{"background":"#CFEEB8"},{"background":"#94D3AB"},{"background":"#C0E8B2"},{"background":"#B0E0AF"},{"background":"#7CCAAB"},{"background":"#9DD7AC"},{"background":"#92D2AB"},{"background":"#BAE5B1"},{"background":"#7BCAAB"},{"background":"#93D3AB"},{"background":"#A8DCAE"},{"background":"#A4DBAD"},{"background":"#CDEDB7"},{"background":"#9BD7AC"},{"background":"#62C0AB"},{"background":"#BFE7B2"},{"background":"#D7F1BE"},{"background":"#81CCAB"},{"background":"#81CCAB"},{"background":"#9FD8AD"},{"background":"#B4E2B0"},{"background":"#49B7AB"},{"background":"#E5F6C9"},{"background":"#65C2AB"},{"background":"#B0E0AF"},{"background":"#C6EAB3"},{"background":"#92D2AB"},{"background":"#C9ECB4"},{"background":"#8BD0AB"},{"background":"#9FD8AD"},{"background":"#A8DCAE"},{"background":"#B7E3B1"},{"background":"#C1E8B2"},{"background":"#CFEEB8"},{"background":"#D5F0BD"},{"background":"#6DC4AB"},{"background":"#8BD0AB"},{"background":"#C0E8B2"},{"background":"#4FBAAB"},{"background":"#A4DAAD"},{"background":"#9DD8AC"},{"background":"#C9ECB4"},{"background":"#C4EAB3"},{"background":"#BBE5B1"},{"background":"#C4E9B3"},{"background":"#DDF3C3"},{"background":"#CBECB5"},{"background":"#C0E8B2"},{"background":"#A4DAAD"},{"background":"#B8E4B1"},{"background":"#9ED8AC"},{"background":"#D7F1BE"},{"background":"#A1D9AD"},{"background":"#9BD7AC"},{"background":"#E1F4C5"},{"background":"#BBE5B1"},{"background":"#D9F1BF"},{"background":"#E0F4C4"},{"background":"#FFFFFF"},{"background":"#EDF9CF"},{"background":"#DBF2C1"},{"background":"#F0FAD1"},{"background":"#DAF2C0"},{"background":"#49B7AB"},{"background":"#C6EAB3"},{"background":"#E7F7CA"},{"background":"#A4DBAD"}]},{"accessor":"Average PPR PPG","name":"Average PPR PPG","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#8DD1AB"},{"background":"#B3E1B0"},{"background":"#58BDAB"},{"background":"#8CD0AB"},{"background":"#43B5AB"},{"background":"#9DD8AC"},{"background":"#75C7AB"},{"background":"#64C1AB"},{"background":"#3BB2AB"},{"background":"#ADDFAF"},{"background":"#8ACFAB"},{"background":"#E1F4C5"},{"background":"#6AC3AB"},{"background":"#ACDEAF"},{"background":"#48B7AB"},{"background":"#7ECBAB"},{"background":"#DDF3C2"},{"background":"#77C8AB"},{"background":"#AEDFAF"},{"background":"#63C1AB"},{"background":"#A7DCAE"},{"background":"#97D5AB"},{"background":"#5EBFAB"},{"background":"#9DD8AC"},{"background":"#4FB9AB"},{"background":"#B5E2B0"},{"background":"#35B0AB"},{"background":"#C2E9B2"},{"background":"#9DD8AC"},{"background":"#D4F0BC"},{"background":"#56BCAB"},{"background":"#C6EAB3"},{"background":"#F1FAD1"},{"background":"#79C9AB"},{"background":"#C2E8B2"},{"background":"#F1FAD1"},{"background":"#9BD6AC"},{"background":"#D1EFBA"},{"background":"#B5E3B0"},{"background":"#BEE7B2"},{"background":"#E0F4C5"},{"background":"#E8F7CA"},{"background":"#C3E9B3"},{"background":"#73C7AB"},{"background":"#EFF9CF"},{"background":"#DDF3C3"},{"background":"#FDFEF9"},{"background":"#BFE7B2"},{"background":"#FFFFFF"},{"background":"#EDF9CE"},{"background":"#5DBEAB"},{"background":"#E2F5C6"},{"background":"#F8FDE9"},{"background":"#B7E4B1"},{"background":"#FCFEF4"},{"background":"#C5EAB3"},{"background":"#B1E1B0"},{"background":"#46B6AB"},{"background":"#E7F7CA"},{"background":"#D9F2C0"},{"background":"#CCEDB6"},{"background":"#FAFDF0"},{"background":"#F3FBD6"},{"background":"#BAE5B1"},{"background":"#CBECB5"},{"background":"#ADDFAF"},{"background":"#DAF2C1"},{"background":"#DBF2C1"},{"background":"#D6F0BD"},{"background":"#F5FCDD"}]},{"accessor":"Model Prediction","name":"Model Prediction","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#62C1AB"},{"background":"#7FCBAB"},{"background":"#83CDAB"},{"background":"#89CFAB"},{"background":"#8FD1AB"},{"background":"#92D2AB"},{"background":"#95D3AB"},{"background":"#96D4AB"},{"background":"#9CD7AC"},{"background":"#A1D9AD"},{"background":"#A3DAAD"},{"background":"#A4DAAD"},{"background":"#A6DBAE"},{"background":"#A7DCAE"},{"background":"#A9DDAE"},{"background":"#AADDAE"},{"background":"#AADDAE"},{"background":"#AADDAE"},{"background":"#AADEAE"},{"background":"#ABDEAF"},{"background":"#ADDFAF"},{"background":"#ADDFAF"},{"background":"#AEDFAF"},{"background":"#B2E1B0"},{"background":"#B3E2B0"},{"background":"#B4E2B0"},{"background":"#B5E2B0"},{"background":"#B5E2B0"},{"background":"#B6E3B0"},{"background":"#B6E3B0"},{"background":"#B7E3B1"},{"background":"#B8E4B1"},{"background":"#B8E4B1"},{"background":"#BCE6B1"},{"background":"#BCE6B1"},{"background":"#BDE6B2"},{"background":"#BDE6B2"},{"background":"#BEE6B2"},{"background":"#BEE7B2"},{"background":"#C2E8B2"},{"background":"#C3E9B3"},{"background":"#C3E9B3"},{"background":"#C3E9B3"},{"background":"#C4E9B3"},{"background":"#C4E9B3"},{"background":"#C4E9B3"},{"background":"#C5EAB3"},{"background":"#C6EAB3"},{"background":"#C6EAB3"},{"background":"#C6EAB3"},{"background":"#C6EAB3"},{"background":"#C6EAB3"},{"background":"#C6EBB3"},{"background":"#C7EBB3"},{"background":"#C7EBB3"},{"background":"#C7EBB3"},{"background":"#CAECB4"},{"background":"#CAECB4"},{"background":"#CAECB5"},{"background":"#CBECB5"},{"background":"#CCEDB6"},{"background":"#D0EEB9"},{"background":"#D0EEB9"},{"background":"#D3EFBB"},{"background":"#D8F1BF"},{"background":"#D8F1BF"},{"background":"#D9F1BF"},{"background":"#D9F2C0"},{"background":"#DAF2C0"},{"background":"#DBF2C1"}]}],"columnGroups":[{"headerClassName":"group-header","name":"","columns":["Player"]},{"headerClassName":"group-header","name":"Additional Model Variables","columns":["20% Breakout Age","Yds / Team Pass Yd (1st Season)","Age in Draft Year","30% Breakout Age","Yds / Team Pass Att (Average Season)","Average Dominator Rating"]},{"headerClassName":"group-header","name":"Performance in First 4 Seasons","columns":["Average PPR PPG","Model Prediction"]}],"defaultSortDesc":true,"defaultSorted":[{"id":"Model Prediction","desc":true}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"style":{"fontFamily":"Work Sans, sans-serif","fontSize":"10px"},"dataKey":"5a11f11af7226fc81a8c832fee0ba526"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script></p>
+<div id="model-potential-hits" class="section level2">
+<h2>Model Potential Hits</h2>
+<p><strong>Christian Kirk</strong> – According to <a href="fantasyfootballcalculator.com">fantasyfootballcalculator.com’s</a> historical rookie ADP data, Kirk was the 6th receiver taken on average in 2018 dynasty rookie drafts, after DJ Moore, Calvin Ridley, Courtland Sutton, Anthony Miller, and Michael Gallup. However, the model ranked him 3rd in the 2018 class due to impressive 20% and 30% Breakout Ages of 18 and 19, respectively, along with a very solid Average Dominator Rating of 32.7%. So far, he’s produced the 3rd most average PPR PPG in the 2018 draft class, behind only 1st round picks Moore and Ridley. It’s important to note that Kirk has been fortunate to play in a high-volume passing offense with the Arizona Cardinals and to catch passes from an outstanding young quarterback in Kyler Murray. Team fit often plays a role in the success of prospects and can be difficult to measure during the prospect evaluation process, so it is one of the many variables, along with a statistical model, to keep in mind when making decisions on draft day.</p>
+<p><strong>DJ Chark</strong> – Chark is another receiver that the model identified to be a more productive receiver than his ADP implied. He was the 10th receiver chosen in 2018 rookie drafts on average, taken behind prospects such as Dante Pettis and Antonio Callaway. However, his second round draft capital, a 20% Breakout Age of 19, and early declaration status as a 21 year old led to the model predicting him as the 6th most productive receiver in the 2018 class. This is exactly the level he has produced at so far, averaging 9.82 PPR PPG in his first two seasons after breaking out in his sophomore campaign last season. While he has only played two of the four seasons the model predicts on, it’s clear so far that Chark has outproduced early expectations in becoming the clear number one receiver for the Jacksonville Jaguars.</p>
+</div>
+<div id="model-potential-misses" class="section level2">
+<h2>Model Potential Misses</h2>
+<p><strong>Corey Davis</strong> – While Davis has averaged 8.77 PPR PPG in his first three seasons, ranking 8th among receivers taken in the 2017 Draft, he was predicted by the model to be the most productive receiver across all three drafts in 2017, 2018, and 2019. So what went wrong? Davis was an extremely productive receiver during his four college seasons at Western Michigan, as he set the all-time FBS record for receiving yards in a career. He eclipsed both the 20% and 30% Breakout benchmarks during his true freshman season at 18 years old, and he averaged a 45.5% Dominator Rating over his four seasons, a truly remarkable level of production.</p>
+<p>Davis was drafted 5th overall in the 2017 Draft by the Tennessee Titans, and he was the consensus first receiver taken in 2017 rookie drafts. However, the Titans may not have been the best situation for his fantasy production. Since then, the Titans have ranked 8th, 2nd, and 3rd the last three seasons in run rate, according to <a href="sharpfootballstats.com">sharpfootballstats.com</a>, meaning the Titans have chosen to run the ball on a higher percentage of plays than almost every team in the league over that span. This lack of passing volume undoubtedly has an impact on Davis’s overall receiving volume. However, AJ Brown was drafted by the Titans as a rookie receiver in 2019, and he immediately stepped in and averaged 13.57 PPR PPG in his first season, so the offensive system isn’t the only culprit to blame for Davis’s relative lack of production.</p>
+<p>As a follow-up to this model, it might be worth taking a look at the effect that playing at smaller schools has on market share statistics such as Dominator Rating and Breakout Age. Playing at Western Michigan in the Mid-American Conference (MAC), Davis didn’t have nearly as much competition for targets as he would have if he attended a larger school in the ACC or Big Ten. Because of this, his market share metrics may have been inflated compared to players from larger schools, which would also inflate his production prediction from the model. Adjusting certain metrics for team strength, strength of schedule, or conference would be a possible next step to ensure that differences in college competition levels are accounted for.</p>
+<p><strong>Terry McLaurin</strong> – By all accounts, McLaurin’s explosion of 13.71 PPR PPG during his rookie season in 2019 is a complete outlier based on his college production. He was the 14th receiver selected in 2019 dynasty rookie drafts on average, and the model predicted him to have the 17th best average PPR PPG out of 19 receivers in the 2019 draft included in the data set. He never eclipsed a 20% Dominator Rating in a college season, averaged only a 12.6% Dominator Rating throughout his college career, and was 23 years old by the time he was selected in the draft, making him one of the oldest rookies in the class.</p>
+<p>While there are no variables in the model that suggest much of a chance of NFL production for McLaurin besides his third round draft capital, it is possible that his receiving role in college may have caused his market share metrics to suffer. McLaurin played at Ohio State, a school that is consistently ripe with talent and produced several drafted receiver prospects during McLaurin’s time at the school. He spent the 2016 season behind 2017 2nd round pick Curtis Samuel on the depth chart, and during the 2017 and 2018 seasons, he caught fewer passes than both 2019 2nd round pick Parris Campbell and 2020 7th round pick KJ Hill.</p>
+<p>While you would ideally like to see a prospect produce at a high level in college even when surrounded by other standout receivers, it may be beneficial to include a metric that tracks the receiving talent around a prospect to account for cases like McLaurin’s where there are many capable mouths to feed within the same college offense. For example, it may be interesting to record whether or not a prospect had a teammate who was also drafted as a receiver in the same draft, as prospects in offenses with other NFL-level talent may be less likely to dominate the market share of their college’s offense than prospects who are far and away the most talented receivers at their school.</p>
+</div>
+</div>
+<div id="predictions" class="section level1">
+<h1>2020 Predictions</h1>
+<p>Finally, we have average PPR PPG predictions for the 2020 wide receiver draft class.</p>
+<p>In areas like the NFL Draft that have historically been such inexact sciences, a statistical model is best served as a tool in the toolbox of player evaluation, rather than as the entire toolbox itself. As we saw with the previous examples of model hits and misses from 2017-2019, there are outside variables that impact success that aren’t currently measured by the model, including team fit, offensive philosophy, and competition from college or professional teammates. Because all of these factors must all be taken into consideration during the decision making process, I prefer to use model results to shift prospects slightly above or below their consensus values rather than as my own personal ranking system, as I realize an NFL Draft model cannot possibly account for everything that determines the success of a prospect.</p>
+<p>Based on their rookie draft ADP, here are a couple prospects I am targeting in rookie drafts, as well as a couple prospects I would pass on this year, according to a combination of model results and the aforementioned outside variables.</p>
+<p><div id="htmlwidget-e26dbdd4f2c00135a029" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-e26dbdd4f2c00135a029">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Player":["JALEN REAGOR","CEEDEE LAMB","JERRY JEUDY","JUSTIN JEFFERSON","HENRY RUGGS III","BRANDON AIYUK","KJ HAMLER","TEE HIGGINS","LAVISKA SHENAULT JR","DENZEL MIMS","BRYAN EDWARDS","MICHAEL PITTMAN JR","CHASE CLAYPOOL","ANTONIO GANDY-GOLDEN","GABRIEL DAVIS","DEVIN DUVERNAY","DARNELL MOONEY","TYLER JOHNSON","ISAIAH HODGINS","QUINTEZ CEPHUS","VAN JEFFERSON","DONOVAN PEOPLES-JONES","JAMES PROCHE","COLLIN JOHNSON","QUEZ WATKINS","JOHN HIGHTOWER","JOE REED","TYRIE CLEVELAND","JAUAN JENNINGS","KJ OSBORN","FREDDIE SWAIN","DEZMON PATMON","KJ HILL"],"School":["TCU","Oklahoma","Alabama","LSU","Alabama","Arizona St","Penn St","Clemson","Colorado","Baylor","South Carolina","USC","Notre Dame","Liberty","Central Florida","Texas","Tulane","Minnesota","Oregon St","Wisconsin","Mississippi","Michigan","SMU","Texas","Southern Miss","Boise St","Virginia","Florida","Tennessee","Miami (FL)","Florida","Washington St","Ohio St"],"Draft Year":[2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020,2020],"Draft Round":[1,1,1,1,1,1,2,2,2,2,3,2,2,4,4,3,5,5,6,5,2,6,6,5,6,5,5,7,7,5,6,6,7],"Draft Pick":[21,17,15,22,12,25,46,33,42,59,81,34,49,142,128,92,173,161,207,166,57,187,201,165,200,168,151,252,217,176,214,212,220],"Average PPR PPG":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"Model Prediction":[9.85,9.59,9.19,9.04,8.21,8.17,7.65,7.1,7.02,6.49,6.45,6.33,5.83,5.28,5.1,4.96,4.72,4.55,4.28,4.19,4.14,4.09,4,3.9,3.8,3.75,3.73,3.34,3.25,3.07,2.72,2.67,2.64]},"columns":[{"accessor":"Player","name":"Player","type":"character","className":"cell","headerClassName":"header","width":150,"align":"center"},{"accessor":"School","name":"School","type":"character","className":"cell","headerClassName":"header","width":150,"align":"center"},{"accessor":"Draft Year","name":"Draft Year","type":"numeric","className":"cell","headerClassName":"header","filterable":true,"width":70,"align":"center"},{"accessor":"Draft Round","name":"Draft Round","type":"numeric","className":"cell","headerClassName":"header","filterable":true,"width":70,"align":"center"},{"accessor":"Draft Pick","name":"Draft Pick","type":"numeric","className":"cell","headerClassName":"header","filterable":true,"width":70,"align":"center"},{"accessor":"Average PPR PPG","name":"Average PPR PPG","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"}]},{"accessor":"Model Prediction","name":"Model Prediction","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#35B0AB"},{"background":"#3AB2AB"},{"background":"#43B5AB"},{"background":"#46B6AB"},{"background":"#58BDAB"},{"background":"#59BDAB"},{"background":"#64C1AB"},{"background":"#70C6AB"},{"background":"#72C6AB"},{"background":"#7ECBAB"},{"background":"#7FCBAB"},{"background":"#81CCAB"},{"background":"#8CD0AB"},{"background":"#97D5AB"},{"background":"#9AD6AC"},{"background":"#9DD7AC"},{"background":"#A1D9AD"},{"background":"#A4DBAD"},{"background":"#A9DDAE"},{"background":"#AADDAE"},{"background":"#ABDEAF"},{"background":"#ACDEAF"},{"background":"#AEDFAF"},{"background":"#AFE0AF"},{"background":"#B1E1B0"},{"background":"#B2E1B0"},{"background":"#B2E1B0"},{"background":"#B9E4B1"},{"background":"#BBE5B1"},{"background":"#BEE7B2"},{"background":"#C4E9B3"},{"background":"#C5EAB3"},{"background":"#C5EAB3"}]}],"columnGroups":[{"headerClassName":"group-header","name":"Player Info","columns":["Player","School"]},{"headerClassName":"group-header","name":"Draft Capital","columns":["Draft Year","Draft Round","Draft Pick"]},{"headerClassName":"group-header","name":"Performance in First 4 Seasons","columns":["Average PPR PPG","Model Prediction"]}],"defaultSortDesc":true,"defaultSorted":[{"id":"Model Prediction","desc":true}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"style":{"fontFamily":"Work Sans, sans-serif","fontSize":"10px"},"dataKey":"442b501153eb1193975bac5c6973405c"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script><div id="htmlwidget-e307053cadb933e47954" class="reactable html-widget" style="width:auto;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-e307053cadb933e47954">{"x":{"tag":{"name":"Reactable","attribs":{"data":{"Player":["JALEN REAGOR","CEEDEE LAMB","JERRY JEUDY","JUSTIN JEFFERSON","HENRY RUGGS III","BRANDON AIYUK","KJ HAMLER","TEE HIGGINS","LAVISKA SHENAULT JR","DENZEL MIMS","BRYAN EDWARDS","MICHAEL PITTMAN JR","CHASE CLAYPOOL","ANTONIO GANDY-GOLDEN","GABRIEL DAVIS","DEVIN DUVERNAY","DARNELL MOONEY","TYLER JOHNSON","ISAIAH HODGINS","QUINTEZ CEPHUS","VAN JEFFERSON","DONOVAN PEOPLES-JONES","JAMES PROCHE","COLLIN JOHNSON","QUEZ WATKINS","JOHN HIGHTOWER","JOE REED","TYRIE CLEVELAND","JAUAN JENNINGS","KJ OSBORN","FREDDIE SWAIN","DEZMON PATMON","KJ HILL"],"20% Breakout Age":[18,19,19,19,"NA",21,19,19,19,19,18,20,21,20,19,21,19,19,19,19,"NA",19,19,20,20,21,20,19,19,22,"NA","NA","NA"],"Yds / Team Pass Yd (1st Season)":[0.168,0.159,0.101,0,0.088,0.157,0.276,0.105,0.054,0.007,0.213,0.023,0.027,0.33,0.091,0.136,0.196,0.062,0.117,0.037,0.144,0.124,0.224,0.104,0.108,0.133,0.027,0.106,0.058,0.044,0.042,0.004,0.094],"Age in Draft Year":[21,21,21,21,21,22,21,21,21,22,21,22,22,22,21,22,22,22,21,22,24,21,23,22,22,22,22,22,23,23,22,22,22],"30% Breakout Age":[19,20,"NA",19,"NA",21,20,"NA",19,19,21,21,21,20,20,21,19,19,20,21,"NA","NA",21,"NA",20,"NA","NA","NA",22,"NA","NA","NA","NA"],"Yds / Team Pass Att (Average Season)":[1.824,2.528,2.078,2.5,1.47,2.282,2.266,1.637,1.56,2.129,1.785,1.725,1.722,2.715,1.748,1.331,2.24,2.637,1.865,2.11,1.199,1.204,2.061,1.48,1.888,1.566,1.029,0.833,1.576,1.681,0.945,1.142,1.264],"Average Dominator Rating":[0.32,0.255,0.188,0.298,0.173,0.27,0.293,0.227,0.199,0.251,0.296,0.173,0.166,0.381,0.213,0.156,0.322,0.399,0.283,0.19,0.142,0.177,0.301,0.165,0.257,0.21,0.14,0.118,0.167,0.163,0.118,0.099,0.13],"Average PPR PPG":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"Model Prediction":[9.85,9.59,9.19,9.04,8.21,8.17,7.65,7.1,7.02,6.49,6.45,6.33,5.83,5.28,5.1,4.96,4.72,4.55,4.28,4.19,4.14,4.09,4,3.9,3.8,3.75,3.73,3.34,3.25,3.07,2.72,2.67,2.64]},"columns":[{"accessor":"Player","name":"Player","type":"character","className":"cell","headerClassName":"header","width":150,"align":"center"},{"accessor":"20% Breakout Age","name":"20% Breakout Age","type":"numeric","className":"cell","headerClassName":"header","width":70,"align":"center","style":[{"background":"#35B0AB"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#FFFFFF"},{"background":"#F7FCE5"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#35B0AB"},{"background":"#E9F8CC"},{"background":"#F7FCE5"},{"background":"#E9F8CC"},{"background":"#C9ECB4"},{"background":"#F7FCE5"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#FFFFFF"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#E9F8CC"},{"background":"#E9F8CC"},{"background":"#F7FCE5"},{"background":"#E9F8CC"},{"background":"#C9ECB4"},{"background":"#C9ECB4"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"}]},{"accessor":"Yds / Team Pass Yd (1st Season)","name":"Yds / Team Pass Yd (1st Season)","type":"numeric","className":"cell","headerClassName":"header","width":70,"align":"center","style":[{"background":"#9CD7AC"},{"background":"#A0D9AD"},{"background":"#BFE7B2"},{"background":"#FFFFFF"},{"background":"#C6EAB3"},{"background":"#A1D9AD"},{"background":"#58BDAB"},{"background":"#BDE6B2"},{"background":"#DBF2C1"},{"background":"#FAFDEF"},{"background":"#81CCAB"},{"background":"#F0FAD0"},{"background":"#EDF9CE"},{"background":"#35B0AB"},{"background":"#C4E9B3"},{"background":"#ACDFAF"},{"background":"#8CD0AB"},{"background":"#D6F0BD"},{"background":"#B6E3B0"},{"background":"#E7F7CA"},{"background":"#A8DDAE"},{"background":"#B3E1B0"},{"background":"#7AC9AB"},{"background":"#BDE6B2"},{"background":"#BBE5B1"},{"background":"#AEDFAF"},{"background":"#EDF9CE"},{"background":"#BCE6B1"},{"background":"#D9F1BF"},{"background":"#E2F5C6"},{"background":"#E3F5C7"},{"background":"#FCFEF6"},{"background":"#C2E9B2"}]},{"accessor":"Age in Draft Year","name":"Age in Draft Year","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#D3F0BC"},{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#D3F0BC"},{"background":"#35B0AB"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#35B0AB"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#35B0AB"},{"background":"#D3F0BC"},{"background":"#FFFFFF"},{"background":"#35B0AB"},{"background":"#F5FBDC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#F5FBDC"},{"background":"#F5FBDC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"}]},{"accessor":"30% Breakout Age","name":"30% Breakout Age","type":"numeric","className":"cell","headerClassName":"header","width":70,"align":"center","style":[{"background":"#35B0AB"},{"background":"#D3F0BC"},{"background":"#FFFFFF"},{"background":"#35B0AB"},{"background":"#FFFFFF"},{"background":"#F5FBDC"},{"background":"#D3F0BC"},{"background":"#FFFFFF"},{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#F5FBDC"},{"background":"#F5FBDC"},{"background":"#F5FBDC"},{"background":"#D3F0BC"},{"background":"#D3F0BC"},{"background":"#F5FBDC"},{"background":"#35B0AB"},{"background":"#35B0AB"},{"background":"#D3F0BC"},{"background":"#F5FBDC"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#F5FBDC"},{"background":"#FFFFFF"},{"background":"#D3F0BC"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"}]},{"accessor":"Yds / Team Pass Att (Average Season)","name":"Yds / Team Pass Att (Average Season)","type":"numeric","className":"cell","headerClassName":"header","width":70,"align":"center","style":[{"background":"#99D5AC"},{"background":"#4AB7AB"},{"background":"#7DCBAB"},{"background":"#4DB9AB"},{"background":"#B9E4B1"},{"background":"#66C2AB"},{"background":"#68C3AB"},{"background":"#AADDAE"},{"background":"#B1E1B0"},{"background":"#77C8AB"},{"background":"#9CD7AC"},{"background":"#A2DAAD"},{"background":"#A2DAAD"},{"background":"#35B0AB"},{"background":"#A0D9AD"},{"background":"#C6EAB3"},{"background":"#6BC4AB"},{"background":"#3DB3AB"},{"background":"#95D4AB"},{"background":"#7AC9AB"},{"background":"#D5F0BC"},{"background":"#D4F0BC"},{"background":"#7FCBAB"},{"background":"#B8E4B1"},{"background":"#93D3AB"},{"background":"#B0E0AF"},{"background":"#E8F7CB"},{"background":"#FFFFFF"},{"background":"#AFE0AF"},{"background":"#A6DBAE"},{"background":"#F2FBD4"},{"background":"#DBF2C1"},{"background":"#CDEDB7"}]},{"accessor":"Average Dominator Rating","name":"Average Dominator Rating","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#6DC5AB"},{"background":"#9AD6AC"},{"background":"#C0E8B2"},{"background":"#7DCAAB"},{"background":"#C9ECB4"},{"background":"#91D2AB"},{"background":"#80CCAB"},{"background":"#AADDAE"},{"background":"#BAE5B1"},{"background":"#9CD7AC"},{"background":"#7ECBAB"},{"background":"#C9ECB4"},{"background":"#CEEEB8"},{"background":"#41B4AB"},{"background":"#B2E1B0"},{"background":"#D6F0BD"},{"background":"#6CC4AB"},{"background":"#35B0AB"},{"background":"#88CEAB"},{"background":"#BFE7B2"},{"background":"#E0F4C5"},{"background":"#C7EBB3"},{"background":"#7BCAAB"},{"background":"#CFEEB8"},{"background":"#99D5AC"},{"background":"#B4E2B0"},{"background":"#E1F5C6"},{"background":"#F1FAD1"},{"background":"#CEEDB7"},{"background":"#D1EEB9"},{"background":"#F1FAD1"},{"background":"#FFFFFF"},{"background":"#E9F7CB"}]},{"accessor":"Average PPR PPG","name":"Average PPR PPG","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"},{"background":"#FFFFFF"}]},{"accessor":"Model Prediction","name":"Model Prediction","type":"numeric","className":"cell","headerClassName":"header","width":80,"align":"center","style":[{"background":"#35B0AB"},{"background":"#3AB2AB"},{"background":"#43B5AB"},{"background":"#46B6AB"},{"background":"#58BDAB"},{"background":"#59BDAB"},{"background":"#64C1AB"},{"background":"#70C6AB"},{"background":"#72C6AB"},{"background":"#7ECBAB"},{"background":"#7FCBAB"},{"background":"#81CCAB"},{"background":"#8CD0AB"},{"background":"#97D5AB"},{"background":"#9AD6AC"},{"background":"#9DD7AC"},{"background":"#A1D9AD"},{"background":"#A4DBAD"},{"background":"#A9DDAE"},{"background":"#AADDAE"},{"background":"#ABDEAF"},{"background":"#ACDEAF"},{"background":"#AEDFAF"},{"background":"#AFE0AF"},{"background":"#B1E1B0"},{"background":"#B2E1B0"},{"background":"#B2E1B0"},{"background":"#B9E4B1"},{"background":"#BBE5B1"},{"background":"#BEE7B2"},{"background":"#C4E9B3"},{"background":"#C5EAB3"},{"background":"#C5EAB3"}]}],"columnGroups":[{"headerClassName":"group-header","name":"","columns":["Player"]},{"headerClassName":"group-header","name":"Additional Model Variables","columns":["20% Breakout Age","Yds / Team Pass Yd (1st Season)","Age in Draft Year","30% Breakout Age","Yds / Team Pass Att (Average Season)","Average Dominator Rating"]},{"headerClassName":"group-header","name":"Performance in First 4 Seasons","columns":["Average PPR PPG","Model Prediction"]}],"defaultSortDesc":true,"defaultSorted":[{"id":"Model Prediction","desc":true}],"defaultPageSize":10,"paginationType":"numbers","showPageInfo":true,"minRows":1,"style":{"fontFamily":"Work Sans, sans-serif","fontSize":"10px"},"dataKey":"11ca98104835a6d1248ad1e84a57f2ec"},"children":[]},"class":"reactR_markup"},"evals":[],"jsHooks":[]}</script></p>
+<div id="prospects-to-target" class="section level2">
+<h2>Prospects to Target</h2>
+<p><strong>Jalen Reagor</strong> - Reagor may have accumulated underwhelming counting stats during his three years at TCU, but his market share metrics make him a screaming buy in rookie drafts according to the model. He surpassed a 20% Dominator Rating in his 18-year-old freshman season, had a whopping 44.2% Dominator Rating as a 19-year-old sophomore, and finished his college career with an Average Dominator Rating of 32%. So, while Reagor only recorded a subpar 576, 1,061, and 611 receiving yards in his three college seasons, this was more due to the lack of production from the TCU passing offense as a whole, as Reagor accounted for more than his fair share of the team’s receiving yards and touchdowns.</p>
+<p>In addition, Reagor was drafted in the first round by an Eagles team that includes a talented young quarterback in Carsen Wentz and does not return much meaningful receiving production from last season. With oft-injured Alshon Jeffery and new acquisitions Desean Jackson and Marquise Goodwin all reaching 30 years of age by the end of the 2020 season, the only young receiver that Reagor will have to compete with for targets is J.J. Arcega-Whiteside, who underperformed when given opportunity during his rookie campaign in 2019. Reagor is currently being taken as the 4th receiver on average in rookie drafts, behind Jerry Jeudy, CeeDee Lamb, and Henry Ruggs III. However, based on his model prediction and his immediate and long-term fits within the Eagles offense, I would feel comfortable drafting him in the same tier as Jeudy and Lamb, and I think that he is an absolute bargain if he falls to the third receiver in your rookie draft.</p>
+<p><strong>Bryan Edwards</strong> - Edwards was taken in the third round with the 81st overall pick by the Las Vegas Raiders and is currently the 13th receiver taken in rookie drafts on average. Yet, he is the 11th ranked receiver by the model and grades out higher than second round picks Michael Pittman Jr., Chase Claypool, and Van Jefferson. Edwards surpassed the 20% Dominator Rating threshold during his age 18 freshman season at South Carolina, recording 44 receptions for 590 yards and 4 touchdowns. He steadily improved his production in each of his collegiate seasons, posting an impressive 40.3% Dominator Rating in his senior season, which would have been even higher had he not missed the last two games of the season due to a knee injury. In addition, his Average Dominator Rating of 29.6%, despite playing alongside 2019 second round pick Deebo Samuel during his first three seasons, indicate that Edwards was highly productive even while competing for targets with other NFL talent.</p>
+<p>On top of his outstanding production, Edwards joins a Raiders receiving corps that is looking to upgrade this season. With only 28-year-old Tyrell Williams and 2019 5th round pick Hunter Renfrow returning as significant mainstays on their receiving depth chart entering the 2020 offseason, the Raiders selected Alabama receiver Henry Ruggs III in the first round and paired him with Edwards in the third round of the Draft. Spending multiple picks on receivers in the same draft tells me that the Raiders weren’t happy with their personnel at the position and that they will likely give this pair of 21-year-olds every opportunity to step in and succeed. For me, Edwards fits in as a top 10 receiver in this class based on his college production and the potential for immediate targets with the Raiders, and I would feel comfortable drafting him anywhere in the 7th to 10th receiver range alongside prospects such as Tee Higgins, Laviska Shenault Jr., Denzel Mims, and Michael Pittman Jr. </p>
+</div>
+<div id="prospects-to-avoid" class="section level2">
+<h2>Prospects to Avoid</h2>
+<p><strong>Henry Ruggs III</strong> - While Ruggs enters the exact same situation as Edwards and has the highest draft capital in this class after being selected 12th overall by the Raiders, his college production profile pushes him down the model’s rankings and makes him more of a speculative fantasy draft choice predicated on upside. During his three seasons at Alabama, Ruggs never reached a 20% Dominator Rating in a single season, let alone a 30% Dominator Rating, and averaged only a 17.3% Dominator Rating for his career, ranking 22nd out of the 33 prospects in the 2020 data set. Playing alongside fellow 2020 first round receiver Jerry Jeudy and 2021 Draft prospects Jaylen Waddle and Devonta Smith, Ruggs made up a much smaller market share of his team’s passing offense than you would expect for the first receiver selected in a draft.</p>
+<p>When watching his highlights, it’s clear to see why the Raiders are intrigued by Ruggs’s potential. He ran a 4.28 40-yard dash at the NFL combine, which was the fastest in the 2020 receiver class, and some NFL offenses thrive on having a receiver who can stretch the field and keep defenses honest. However, Ruggs is currently being taken as the third receiver in rookie drafts on average, behind only Jeudy and Lamb. His lack of college production compared to fellow first rounders Reagor and Justin Jefferson pushes him down to the fifth receiver in the draft according to the model. Given that Reagor and Jefferson have similar paths to playing time and targets as Ruggs, I wouldn’t select Ruggs any earlier than the fifth receiver in the draft, which means I probably won’t be taking him in any drafts this year unless he falls farther than expected.</p>
+<p><strong>Van Jefferson</strong> - Jefferson is similar to Ruggs in that his college production doesn’t match his draft capital. Although Jefferson was the 12th receiver selected in the 2020 Draft, the model ranks him 21st out of the 33 receivers in the data set, a prediction that is almost solely based on his second-round draft pedigree. After redshirting his freshman season, he played four years of college football, with the first two at Ole Miss and the last two at Florida. Even though Jefferson will be 24 years old before he takes an NFL snap as the oldest receiver in this class, he still didn’t produce as much of his team’s offense as you’d hope for from a four-year receiver. Like Ruggs, he never surpassed a 20% Dominator Rating, and his 14.2% Average Dominator Rating for his career ranks 28th of the 33 2020 receivers.</p>
+<p>With his market share statistics suffering, the model ranks him as the 22nd receiver in this class, while he is currently being taken as the 16th receiver in rookie drafts on average, ahead of prospects such as Chase Claypool and Gabriel Davis. Given that he is joining a crowded receiving group with the Los Angeles Rams that includes established veterans Robert Woods and Cooper Kupp, who are still in their primes, I am comfortable passing on Jefferson even in the later rounds of rookie drafts.</p>
+</div>
+</div>
+<div id="next-steps" class="section level1">
+<h1>Next Steps</h1>
+<ul>
+<li>Look into conference-adjusted or team strength-adjusted metrics to account for players dominating market share at smaller schools and players competing with other NFL talent for targets in college</li>
+<li>Remove highly correlated variables from stepwise regression and random forest models to see how variable importance in each model compares to the elastic net model</li>
+</ul>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre><code>R version 3.6.0 (2019-04-26)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows 10 x64 (build 18362)
+
+Matrix products: default
+
+Random number generation:
+ RNG:     Mersenne-Twister 
+ Normal:  Inversion 
+ Sample:  Rounding 
+ 
+locale:
+[1] LC_COLLATE=English_United States.1252 
+[2] LC_CTYPE=English_United States.1252   
+[3] LC_MONETARY=English_United States.1252
+[4] LC_NUMERIC=C                          
+[5] LC_TIME=English_United States.1252    
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] reactable_0.2.0     jtools_2.0.5        caretEnsemble_2.0.1
+ [4] glmnet_4.0-2        Matrix_1.2-17       corrplot_0.84      
+ [7] randomForest_4.6-14 ggpmisc_0.3.5       car_3.0-8          
+[10] carData_3.0-4       caret_6.0-86        ggplot2_3.3.2      
+[13] lattice_0.20-38     mice_3.9.0          openxlsx_4.1.5     
+[16] lubridate_1.7.9     tidyr_1.1.0         dplyr_1.0.0        
+[19] MASS_7.3-51.6       stringr_1.4.0       rvest_0.3.5        
+[22] xml2_1.3.2         
+
+loaded via a namespace (and not attached):
+ [1] colorspace_1.4-1     ellipsis_0.3.1       class_7.3-15        
+ [4] rio_0.5.16           rprojroot_1.3-2      fs_1.4.2            
+ [7] rstudioapi_0.11      farver_2.0.3         prodlim_2019.11.13  
+[10] fansi_0.4.1          codetools_0.2-16     splines_3.6.0       
+[13] knitr_1.28           jsonlite_1.6.1       polynom_1.4-0       
+[16] workflowr_1.6.2      pROC_1.16.2          broom_0.5.6         
+[19] readr_1.3.1          compiler_3.6.0       httr_1.4.1          
+[22] backports_1.1.7      assertthat_0.2.1     cli_2.0.2           
+[25] later_1.1.0.1        htmltools_0.5.0      tools_3.6.0         
+[28] gtable_0.3.0         glue_1.4.1           reshape2_1.4.4      
+[31] Rcpp_1.0.4.6         cellranger_1.1.0     vctrs_0.3.1         
+[34] nlme_3.1-139         iterators_1.0.12     crosstalk_1.1.0.1   
+[37] timeDate_3043.102    gower_0.2.1          xfun_0.15           
+[40] lifecycle_0.2.0      scales_1.1.1         ipred_0.9-9         
+[43] hms_0.5.3            promises_1.1.1       parallel_3.6.0      
+[46] yaml_2.2.1           curl_4.3             pbapply_1.4-2       
+[49] gridExtra_2.3        pander_0.6.3         rpart_4.1-15        
+[52] stringi_1.4.6        foreach_1.5.0        zip_2.0.4           
+[55] lava_1.6.7           shape_1.4.4          rlang_0.4.6         
+[58] pkgconfig_2.0.3      evaluate_0.14        purrr_0.3.4         
+[61] recipes_0.1.12       htmlwidgets_1.5.1    labeling_0.3        
+[64] tidyselect_1.1.0     plyr_1.8.6           magrittr_1.5        
+[67] R6_2.4.1             generics_0.0.2       pillar_1.4.4        
+[70] haven_2.3.1          foreign_0.8-71       withr_2.2.0         
+[73] mgcv_1.8-28          survival_2.44-1.1    abind_1.4-5         
+[76] nnet_7.3-12          tibble_3.0.1         crayon_1.3.4        
+[79] rmarkdown_2.3        grid_3.6.0           readxl_1.3.1        
+[82] data.table_1.12.8    reactR_0.4.2         git2r_0.27.1        
+[85] forcats_0.5.0        ModelMetrics_1.2.2.2 digest_0.6.25       
+[88] webshot_0.5.2        httpuv_1.5.4         stats4_3.6.0        
+[91] munsell_0.5.0        viridisLite_0.3.0    kableExtra_1.1.0    </code></pre>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

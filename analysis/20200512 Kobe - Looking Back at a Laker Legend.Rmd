@@ -13,10 +13,6 @@ knitr::read_chunk("./analysis/doc_settings.R")
 # Set chunk settings
 ```
 
-```{r last-updated, echo=F, results='asis'}
-# Last Updated Date
-```
-
 ![](assets/20200512/Kobe Bryant Picture.jpg)
 
 From entering the public eye as a high school phenom declaring for the NBA Draft to writing and narrating an Oscar-winning short film "Dear Basketball" just one year after retiring - not to mention a 20 year NBA career in between that many consider to be one of the 10 greatest ever - Kobe Bryant was always larger than life. He was an 18-time All Star, 15-time All-NBA, 12-time All-Defensive team, 2-time scoring champion, the 2007-2008 regular season MVP, and, most importantly to him, a 5-time NBA champion. You could have separated his career into two players - the first half in which he wore #8 and the second half in which he wore #24 - and both would have accomplished enough to reach the Hall of Fame on their own. 

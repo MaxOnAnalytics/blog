@@ -1,0 +1,1182 @@
+---
+title: "Predicting the Next Best Fantasy WR"
+date: "July 19, 2020"
+output: workflowr::wflow_html
+---
+
+```{r read-settings, include=F, cache=F}
+# Read in global document settings
+knitr::read_chunk("./analysis/doc_settings.R")
+```
+
+```{r knitr-opts-chunk, include=F}
+# Set chunk settings
+```
+
+<center>
+
+![](assets/20200719/Odell Beckham Draft.jpg)
+
+</center>
+
+As a kid who started regularly watching football in high school and whose favorite subject in school was always math, I quickly became hooked once I was introduced to fantasy football. The concept of using many sources of information – player statistics, team/coaching tendencies, role changes, injury news, fantasy analyst opinions, and even social media – to make draft day and lineup decisions and earn bragging rights over my friends intrigued me. While I didn’t build any actual models myself at the time, in a roundabout way, playing fantasy football was my first exposure to data-driven decision making, and now it has become an avenue where I can use my background in statistics and data analysis to develop strategies and gain an edge on the competition. 
+
+I first started playing fantasy football in standard redraft leagues, in which you draft your team from scratch for one year, play out the season, and then pick an entirely new team from scratch again the next year. I typically play in 2 or 3 redraft leagues each year, and I really enjoy the banter that occurs between my friends and me during the fantasy season, not to mention the fact that it’s a great way to keep in touch. However, redraft leagues typically start in August and end in December, so there are a full 7 months of the year without fantasy drafts, trades, or trash talk. 
+
+Enter dynasty leagues. A dynasty league involves a start-up draft consisting of all active NFL players. After the first season is played out and a champion is crowned, each team retains all of the players they had at the end of the season for the next year, along with any rookies they select in a 3-4 round rookie draft that takes place between the real NFL Draft and the start of the next NFL season. This has quickly become my favorite fantasy football format over redraft leagues, as I believe there is a lot more strategy involved when the age of players, length of contracts, and long-term outlooks come into play. Keeping players for multiple years allows you to become more invested in their careers, and depending on how involved you decide to be with trading players and picking players up off the waiver wire, a dynasty league can become a 365-day-a-year hobby. The dynasty format also places a huge emphasis on finding young talent in the start-up and rookie drafts to maintain prolonged success and attempt to build your “dynasty”. By doing your research and picking a stud 22-year-old running back or wide receiver in a dynasty rookie draft, you can fill a spot in your lineup for the next 7-8 years, and even if you completely whiff during the start-up draft (like I did in my first dynasty league), you can rebuild your team into a contender with just a few rookie draft steals.
+
+With rookie drafts being so important in dynasty, I decided to take a look at each position relevant to fantasy football – quarterback, running back, wide receiver, and tight end – to see how I can identify potentially undervalued rookie prospects for the upcoming 2020 season using statistical modeling. With 13 wide receivers picked in the first two rounds of the 2020 NFL Draft alone, a receiver success model seemed like a good place to start to try to extract value in this year’s rookie draft. While predictive power of the model is important, I am mainly interested in discovering which variables are most predictive of success, and I am willing to sacrifice some predictive power in exchange for model interpretability so it is easy to determine why my model likes or dislikes a prospect compared to consensus rankings. 
+
+Over the next few sections, I’ll walk through the data I used to train this model, some of the statistical modeling techniques I used on training data, how each technique performed when making predictions on new data, and some of the variables (besides draft capital) that I found to be most predictive of early fantasy success. Then, I’ll take a look at how my model’s predictions on the 2017-2019 NFL Draft classes look so far and explain some of the model’s potential hits and misses, along with some possible ways to improve the model. Finally, I’ll share my predictions for the 2020 rookie class and decide who I am targeting and who I am avoiding based on their Average Draft Position (ADP) in 2020 rookie drafts. 
+
+
+```{r libraries}
+
+## Load libraries
+
+library(rvest)
+library(stringr)
+library(MASS)
+library(dplyr)
+library(tidyr)
+library(lubridate)
+library(openxlsx)
+library(mice)
+library(caret)
+library(car)
+library(ggplot2)
+library(ggpmisc)
+library(randomForest)
+library(corrplot)
+library(glmnet)
+library(caretEnsemble)
+library(jtools)
+library(reactable)
+
+select <- dplyr::select
+filter <- dplyr::filter
+group_by <- dplyr::group_by
+summarise <- dplyr::summarise
+mutate <- dplyr::mutate
+
+RNGkind(sample.kind = "Rounding")
+
+```
+
+# Data
+
+While there are a number of different metrics you can use to measure the success of football players on your fantasy roster, I decided on using average PPR (point per reception) points during the first four seasons of a player’s career as the target variable for my models. Contracts for drafted rookies are set at four years, with a fifth-year team option included for first round picks. By using each player’s first four years of fantasy production, I hope to capture the overall fantasy impact players make to start their careers, with the goal of selecting players who produce early on and will become staples of my fantasy roster long-term. Using average PPR points over the first four seasons rewards players who get off to quick starts and produce during their rookie seasons while penalizing late bloomers who don’t break out until their third or fourth seasons. I also considered using peak PPR points in a season as the target variable but decided that peak performance would be more appropriate for a model measuring upside rather than a model trying to predict sustained production, as I am looking to do here. For simplicity, I’ll refer to the target variable as “average PPR points” moving forward. 
+
+My models were built using data from wide receivers drafted between 2008 and 2016. I scraped draft capital and NFL fantasy production data from [pro-football-reference.com](pro-football-reference.com). While there aren’t too many public data sources that include advanced metrics for college football, I found that [Peter Howard’s Market Share Database](https://docs.google.com/spreadsheets/d/19suThny5WpYuBpv7tKrLe6_qtj_j9DQxHA8vftjkRd0/edit#gid=946570566) consisted of some useful rate statistics and breakdowns by year, as well as traditional stats and combine metrics. While it doesn’t include 100% of drafted receivers from 2008-2016 (I found that some receivers who either went to FCS schools or had less than two years of data at the Division 1 level were excluded), there are still 211 receivers over the nine drafts with enough data to be included in the modeling process. This is a small dataset, but it is one that will allow us to identify the predictive power of the variables strongly correlated with fantasy success. 
+
+After cleaning up variable names and creating new variables through feature engineering, the following features were used in the modeling process:
+
+* **Draft Capital** – Draft Round, Draft Pick
+* **Total Traditional Statistics** – Receptions per Game, Receiving Yards per Game, Yards per Reception
+* **Market Share Statistics** – Yards per Team Pass Attempt, Yards per Team Pass Yard, Yards per Team Pass Attempt Above Team Average, Reception Share, Receiving Touchdown Share
+    - Broken down by First Season, Last Season, Best Season, and Average Season
+* **Combine Metrics** – BMI, 40 Yard Dash, Height, Weight, Bench, Vertical, Broad Jump, Shuttle, 3 Cone, Weight Adjusted Speed Score, Height Adjusted Speed Score, Hand Size, Arm Length
+* **Experience** – Age in Draft Year, Years Played
+* **Dominator Rating and Dominator Rating Over Average**
+    - Broken down by First Season, Last Season, Best Season, and Average Season
+* **20% Breakout Age and 30% Breakout Age**
+
+The metrics in the last two bullet points are important and require some introduction. 
+
+Dominator Rating for a receiver is defined as the percentage of his college team’s receiving yards and receiving touchdowns that the player accounts for. For example, if a player records 30% of his team’s total receiving yards and scores 20% of his team’s total receiving touchdowns for the season, he will have a dominator rating of 25% for the season. 
+
+$$Dominator \: Rating = \frac { (\% \: of \: Team's \: Receiving \: Yards + \% \: of \: Team's \: Receiving \: Touchdowns)} {2}$$
+
+Related to Dominator Rating, 20% Breakout Age is the age at which a receiver records at least a 20% Dominator Rating (or a 30% Dominator Rating for 30% Breakout Age). These are great metrics to determine both how much of his team’s offense a player is responsible for in a given season and how early in his career a player becomes a focal point of his team’s offense. 
+
+The next few sections will describe how each model was built and how the final model for prediction was selected. If the technical details behind the statistical modeling aren’t as interesting to you, please feel free to skip down to the 2017-2019 Predictions section for results and analysis. 
+
+
+```{r read-data}
+
+## Read in draft data and production data
+
+draft_data <- read.csv("./data/20200719/NFL Draft Data 2008-2020.csv", stringsAsFactors = F)
+nfl_fantasy <- read.csv("./data/20200719/NFL Fantasy 2008-2019.csv", stringsAsFactors = F)
+
+## Read in college stats database from Pahowdy
+
+college_stats_raw <- read.xlsx("./data/20200719/Pahowdy's MS Database.xlsx", sheet = "WR", startRow = 2, check.names = T)
+
+```
+
+
+```{r join-draft-production-data}
+
+## Join draft data and receiver production data to get data for modeling
+
+# Only take WRs drafted between 2007 and 2019 in their first 4 years after college
+
+fantasy_stats <- draft_data %>% filter(position_drafted == "WR") %>%
+  left_join(nfl_fantasy, by = "player") %>% 
+  rename(draft_round = round, draft_pick = pick) %>%
+  mutate(player = toupper(player), 
+         draft_birthyear = draft_year - draft_age, 
+         prod_birthyear = season - age, 
+         fantasy_ppr = ifelse(is.na(fantasy_ppr), 0, fantasy_ppr))
+
+fantasy_stats_pre_2020 <- fantasy_stats %>%
+  filter(draft_year < 2020, draft_year >= 2007, 
+         abs(draft_birthyear - prod_birthyear) <= 1, 
+         is.na(games) == F, 
+         season <= draft_year + 3)
+
+fantasy_stats_2020 <- fantasy_stats %>%
+  filter(draft_year == 2020)
+
+fantasy_stats <- rbind(fantasy_stats_pre_2020, fantasy_stats_2020)
+
+rm(fantasy_stats_pre_2020, fantasy_stats_2020)
+
+# Create variable for ppr_ppg, where only seasons with at least 8 games played are included
+
+fantasy_stats <- fantasy_stats %>%
+  mutate(ppr_ppg = ifelse(games >= 8, fantasy_ppr / games, 0))
+
+# Group by player and draft_year to get peak PPR points in first 4 seasons
+
+fantasy_stats <- fantasy_stats %>%
+  group_by(player, school, draft_year, draft_round, draft_pick) %>% 
+  summarise(peak_ppr_ppg = max(ppr_ppg), 
+            avg_ppr_ppg = sum(fantasy_ppr) / sum(games)) %>%
+  ungroup() %>%
+  mutate(avg_ppr_ppg = ifelse(peak_ppr_ppg == 0 & is.na(avg_ppr_ppg), 0, avg_ppr_ppg))
+
+```
+
+
+```{r clean-college-data}
+
+## Clean column names
+
+# Rename columns
+
+colnames(college_stats_raw) <- tolower(gsub("\\.", "_", colnames(college_stats_raw)))
+
+college_stats <- college_stats_raw %>% 
+  filter(dr != "PROSPECT", dr != "UDFA", draft_year >= 2007) %>%
+  rename(
+    draft_round = dr,
+    draft_pick = dp,
+    games = g,
+    breakout20 = x_20_,
+    breakout30 = x_30_,
+    yds_per_tm_patt_first = first,
+    yds_per_tm_patt_best = best,
+    yds_per_tm_patt_last = last,
+    yds_per_tm_patt_avg = avg,
+    yds_per_tm_patt_above_tmavg_first = first_1,
+    yds_per_tm_patt_above_tmavg_best = best_1, 
+    yds_per_tm_patt_above_tmavg_last = last_1, 
+    yds_per_tm_patt_above_tmavg_avg = avg_1,
+    dominator_first = first_2,
+    dominator_best = best_2, 
+    dominator_last = last_2,
+    dominator_avg = avg_2,
+    dom_oavg_first = first_3,
+    dom_oavg_best = best_3,
+    dom_oavg_last = last_3,
+    dom_oavg_avg = avg_3,
+    yds_per_tm_pyds_first = first_4,
+    yds_per_tm_pyds_best = best_4,
+    yds_per_tm_pyds_last = last_4,
+    yds_per_tm_pyds_avg = avg_4,
+    yds_oageavg_first = first_5,
+    yds_oageavg_best = best_5,
+    yds_oageavg_last = last_5,
+    yds_oageavg_avg = avg_5, 
+    vertical = verticle, 
+    rec_share_18 = x18_5,
+    rec_share_19 = x19_5, 
+    rec_share_20 = x20_5, 
+    rec_share_21 = x21_5, 
+    rec_share_22 = x22_5, 
+    rec_share_23 = x23_5, 
+    rec_yds_share_18 = x18_6,
+    rec_yds_share_19 = x19_6, 
+    rec_yds_share_20 = x20_6, 
+    rec_yds_share_21 = x21_6, 
+    rec_yds_share_22 = x22_6, 
+    rec_yds_share_23 = x23_6, 
+    rec_tds_share_18 = x18_8,
+    rec_tds_share_19 = x19_8, 
+    rec_tds_share_20 = x20_8, 
+    rec_tds_share_21 = x21_8, 
+    rec_tds_share_22 = x22_8, 
+    rec_tds_share_23 = x23_8
+  ) %>%
+  mutate(name = toupper(str_trim(gsub("\\(.*", "", gsub("\\'", "", gsub("\\.", "", gsub("\\*", "", gsub("\\+", "", name))))))), 
+         draft_round = as.numeric(draft_round), 
+         draft_pick = as.numeric(draft_pick), 
+         rec_g_18 = x18_2 / x18, 
+         rec_g_19 = x19_2 / x19, 
+         rec_g_20 = x20_2 / x20,
+         rec_g_21 = x21_2 / x21, 
+         rec_g_22 = x22_2 / x22, 
+         rec_g_23 = x23_2 / x23,
+         yds_g_18 = x18_3 / x18, 
+         yds_g_19 = x19_3 / x19, 
+         yds_g_20 = x20_3 / x20,
+         yds_g_21 = x21_3 / x21, 
+         yds_g_22 = x22_3 / x22, 
+         yds_g_23 = x23_3 / x23, 
+         tds_g_18 = x18_4 / x18, 
+         tds_g_19 = x19_4 / x19, 
+         tds_g_20 = x20_4 / x20,
+         tds_g_21 = x21_4 / x21, 
+         tds_g_22 = x22_4 / x22, 
+         tds_g_23 = x23_4 / x23) %>%
+  select(name:yds_oageavg_avg, rec_share_18:rec_share_23, rec_yds_share_18:rec_yds_share_23, 
+         rec_tds_share_18:rec_tds_share_23, rec_g_18:tds_g_23, bmi:arm_length)
+
+college_stats[college_stats == "-"] <- NA
+
+# Convert columns to numeric
+
+for(i in 7:ncol(college_stats)){
+      college_stats[, i] <- as.numeric(as.character(college_stats[, i]))
+}
+
+rm(college_stats_raw)
+
+```
+
+
+```{r remove-college-data-nas}
+
+## Examine columns with NAs and replace any NAs appropriately
+
+# Remove rows with NA school
+# Remove Terrelle Pryor - college QB turned pro WR
+
+college_stats <- college_stats %>%
+  filter(!is.na(school), name != "TERRELLE PRYOR")
+
+```
+
+
+```{r join-fantasy-college-data}
+
+## Join fantasy_stats to college_stats by draft year, draft round, and draft pick
+
+data <- fantasy_stats %>% 
+  inner_join(college_stats, 
+             by = c("draft_year" = "draft_year", "draft_round" = "draft_round", "draft_pick" = "draft_pick")) %>%
+  select(-name, -school.y) %>%
+  rename(school = school.x) %>%
+  distinct()
+
+# fantasy_stats %>% 
+#   left_join(college_stats, 
+#              by = c("draft_year" = "draft_year", "draft_round" = "draft_round", "draft_pick" = "draft_pick")) %>%
+#   filter(is.na(school.y))
+
+# 63 players lost - not found in College Stats DB
+
+```
+
+
+```{r feature-engineering}
+
+## Feature Engineering
+
+# Set breakout ages to 1 greater than age in draft year for NAs
+# Create flags to indicate whether prospect had breakout season at 20% and 30%
+# Create flag for combine participation
+#   - if > 5 columns from bmi to arm_length are NA, then set combine participation to "No"
+
+data <- data %>% 
+  mutate(yds_g = yards / games,
+         # power5 = as.factor(ifelse(conference %in% 
+         #                             c("ACC", "Big 12", "Big Ten", "Pac-10", "Pac-12", "SEC"), "Yes", "No")), 
+         early_declare = as.factor(ifelse(years_played == 4 | (years_played == 2 & age_in_draft_year >= 22) | (years_played == 3 & age_in_draft_year > 22) | years_played < 2, 
+                                          "No", "Yes")),  
+         breakout20_age = ifelse(is.na(breakout20), age_in_draft_year + 1, breakout20), 
+         breakout30_age = ifelse(is.na(breakout30), age_in_draft_year + 1, breakout30), 
+         breakout20_flag = as.factor(ifelse(is.na(breakout20), "No", "Yes")), 
+         breakout30_flag = as.factor(ifelse(is.na(breakout30), "No", "Yes")), 
+         combine_participation = as.factor(ifelse(is.na(bmi) + is.na(x40_time) + is.na(height) + is.na(weight) + 
+                                          is.na(bench) + is.na(vertical) + is.na(broad) + is.na(shuttle) +
+                                          is.na(x3_cone) + is.na(wass) + is.na(hass) + is.na(hand_size) + 
+                                          is.na(arm_length) > 5, "No", "Yes")), 
+         max_rec_share = pmax(rec_share_18, rec_share_19, rec_share_20, rec_share_21, rec_share_22, rec_share_23, na.rm = T), 
+         max_rec_yds_share = pmax(rec_yds_share_18, rec_yds_share_19, rec_yds_share_20, rec_yds_share_21, rec_yds_share_22, rec_yds_share_23, na.rm = T), 
+         max_rec_tds_share = pmax(rec_tds_share_18, rec_tds_share_19, rec_tds_share_20, rec_tds_share_21, rec_tds_share_22, rec_tds_share_23, na.rm = T), 
+         max_rec_g = pmax(rec_g_18, rec_g_19, rec_g_20, rec_g_21, rec_g_22, rec_g_23, na.rm = T), 
+         max_yds_g = pmax(yds_g_18, yds_g_19, yds_g_20, yds_g_21, yds_g_22, yds_g_23, na.rm = T), 
+         max_tds_g = pmax(tds_g_18, tds_g_19, tds_g_20, tds_g_21, tds_g_22, tds_g_23, na.rm = T)) %>%
+  select(-breakout20, -breakout30, -c(rec_share_18:rec_tds_share_23), -c(rec_g_18:tds_g_23))
+
+# Impute missing values for combine data using mice pmm - predictive mean matching
+
+data_targets <- data %>% select(peak_ppr_ppg, avg_ppr_ppg) %>%
+  mutate(peak_ppr_ppg = ifelse(is.na(peak_ppr_ppg), 0, peak_ppr_ppg), 
+         avg_ppr_ppg = ifelse(is.na(avg_ppr_ppg), 0, avg_ppr_ppg))
+imputed_data <- data %>% select(-peak_ppr_ppg, -avg_ppr_ppg)
+
+imputed_data <- mice(imputed_data, method = "pmm", m = 5, maxit = 10, seed = 123, printFlag = F)
+
+data <- complete(imputed_data, 1) %>% cbind(data_targets)
+
+rm(imputed_data)
+rm(data_targets)
+
+# Create variables comparing best season to average season for production metrics
+  
+data <- data %>%
+  mutate(yds_per_tm_patt_best_minus_avg = yds_per_tm_patt_best - yds_per_tm_patt_avg, 
+         dominator_best_minus_avg = dominator_best - dominator_avg, 
+         dom_oavg_best_minus_avg = dom_oavg_best - dom_oavg_avg, 
+         yds_per_tm_pyds_best_minus_avg = yds_per_tm_pyds_best - yds_per_tm_pyds_avg, 
+         yds_oage_best_minus_avg = yds_oageavg_best - yds_oageavg_avg)
+
+data_model <- data %>% filter(draft_year <= 2016)
+
+```
+
+
+```{r correlations, eval=F}
+
+## Plot variable correlations
+
+par(cex = 0.5)
+
+corr_college <- data_model %>% 
+  select(peak_ppr_ppg, avg_ppr_ppg, draft_round, draft_pick, age_in_draft_year:yds_per_tm_patt_avg, 
+         dominator_first:dominator_avg, yds_per_tm_pyds_first:yds_per_tm_pyds_avg) %>% 
+  as.matrix() %>%
+  cor()
+
+corrplot(corr_college,  method = "circle")
+
+corr_combine <- data_model %>% 
+  select(peak_ppr_ppg, avg_ppr_ppg, draft_round, draft_pick, age_in_draft_year, bmi:arm_length) %>% 
+  as.matrix() %>%
+  cor()
+
+corrplot(corr_combine,  method = "circle")
+
+corr_college_combine <- data_model %>% 
+  select(age_in_draft_year:yds_per_tm_patt_avg, dominator_first:dominator_avg,
+         yds_per_tm_pyds_first:yds_per_tm_pyds_avg, bmi:arm_length) %>% 
+  as.matrix() %>%
+  cor()
+
+corrplot(corr_college_combine)
+
+```
+
+
+```{r histograms, eval=F}
+
+## Check histograms/boxplots of each variable
+
+hist(data_model$peak_ppr_ppg)
+hist(data_model$avg_ppr_ppg)
+
+```
+
+
+```{r scatterplots, eval=F}
+
+## Show linear relationship between each variable and peak PPR points
+
+peak_ppr_vars <- data_model %>%
+  select(draft_round, draft_pick, age_in_draft_year:rec_g, college_dominator_rating:arm_length, max_rec_share:yds_oage_best_minus_avg) %>%
+  colnames()
+
+for(i in peak_ppr_vars){
+  
+  print(ggplot(data_model, aes_string(x = i, y = "avg_ppr_ppg")) + 
+    geom_smooth(method = 'loess', formula = y ~ x) + 
+    stat_poly_eq(formula = y ~ x, 
+                aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+                label.x = 5, 
+                parse = TRUE) + 
+    geom_point() + 
+    ggtitle(paste(i, "vs. Average PPR Points")))
+   
+}
+
+```
+
+
+```{r initial-regression, eval=F}
+
+## Build initial Linear Regression Model
+
+lm_a <- lm(sqrt(avg_ppr_ppg) ~ draft_pick, data = data_model)
+
+# summary(lm_a)
+# 
+# par(mfrow = c(2,2))
+# plot(lm_a)
+# 
+# par(mfrow = c(1,1))
+# MASS::boxcox(lm_a)
+
+```
+
+
+```{r avg-ppg-vs-draft-pick, eval=F}
+
+## Plot avg_ppr_ppg ~ draft_pick and sqrt(avg_ppr_ppg) ~ draft_pick
+
+# Draft Pick vs. Average PPR PPG
+
+ggplot(data_model, aes(x = draft_pick, y = avg_ppr_ppg, label = player)) + 
+  geom_smooth(method = 'lm', formula = y ~ x) + 
+  stat_poly_eq(formula = y ~ x, 
+              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+              label.x = 5, 
+              parse = TRUE) + 
+  geom_point() + 
+  geom_text(size = 2, nudge_x = 0.5, nudge_y = 0.5, check_overlap = T) +
+  ggtitle(paste("Draft Pick vs. Average PPR Points in First 4 Seasons \n 2008-2016")) + 
+  labs(x = "Draft Pick", y = "Average PPR Points") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Draft Pick vs. sqrt(Average PPR PPG)
+
+ggplot(data_model, aes(x = draft_pick, y = sqrt(avg_ppr_ppg), label = player)) + 
+  geom_smooth(method = 'lm', formula = y ~ x) + 
+  stat_poly_eq(formula = y ~ x, 
+              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+              label.x = 5, 
+              parse = TRUE) + 
+  geom_point() + 
+  geom_text(size = 2, nudge_x = 0, nudge_y = 0.1, check_overlap = T) +
+  ggtitle(paste("Draft Pick vs. Square Root of Average PPR Points in First 4 Seasons \n 2008-2016")) + 
+  labs(x = "Draft Pick", y = "SQRT(Average PPR Points)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+
+# Modeling
+
+For all upcoming models, I used the same 80/20 train-test split of the 211 observations, and I incorporated 10-fold cross-validation to tune model hyperparameters for the more complex models to optimize performance on unseen data. I started with a baseline linear regression model only consisting of draft capital. Then, I added the remaining variables into stepwise regression, elastic net, and random forest models, and compared test set performance between the models to determine which model was best suited for predicting on new data. 
+
+```{r train-test-split}
+
+## Split data into train and test sets
+
+set.seed(123)
+
+# Train test split
+
+split <- createDataPartition(data_model$avg_ppr_ppg, p = 0.8, list = FALSE)
+train <- data_model[split, ]
+test <- data_model[-split, ]
+
+#mean(train$avg_ppr_ppg)
+#mean(test$avg_ppr_ppg)
+
+#mean(train$draft_pick)
+#mean(test$draft_pick)
+
+```
+
+
+```{r caret-model-list}
+
+## Draft Pick Linear Regression - with variable transformations
+
+lm_draft_pick <- lm(sqrt(avg_ppr_ppg) ~ log(draft_pick) + log(draft_round), data = train)
+
+## Create Caret Model List
+
+# Train Control - Set seed list for reproducibility
+
+set.seed(123)
+
+seeds <- vector(mode = "list", length = 11)
+for(i in 1:10){
+  seeds[[i]] <- sample.int(n = 1000, size = 21)
+}
+seeds[[11]] <- sample.int(1000, 1)
+
+multiFoldIndices <- createMultiFolds(train, k = 10, times = 1)
+control <- trainControl(method = "cv", index = multiFoldIndices, seeds = seeds, savePredictions = "final")
+
+# Stepwise Regression Hyperparameters
+
+stepwise_tunegrid <- data.frame(parameter = 0:20)
+
+# Elastic Net Hyperparameters
+
+lambda.grid <- 10 ^ seq(-3, 3, length = 100)
+alpha.grid <- seq(0, 1, length = 21)
+enet_tunegrid <- expand.grid(.alpha = alpha.grid, .lambda = lambda.grid)
+
+# Random Forest Hyperparameters
+
+mtry <- c(5, 6, 7, 8, 9)
+rf_tunegrid <- expand.grid(.mtry = mtry)
+
+# Model List - Stepwise Regression, Elastic Net, Random Forest
+
+model_list <- caretList(sqrt(avg_ppr_ppg) ~ log(draft_round) + log(draft_pick) + age_in_draft_year + years_played + 
+                    ypr + rec_g + yds_g + 
+                    yds_per_tm_patt_first + yds_per_tm_patt_best + yds_per_tm_patt_last + yds_per_tm_patt_avg + 
+                    yds_per_tm_patt_above_tmavg_first + yds_per_tm_patt_above_tmavg_best + yds_per_tm_patt_above_tmavg_last + yds_per_tm_patt_above_tmavg_avg + 
+                    dominator_first + dominator_best + dominator_last + dominator_avg + 
+                    dom_oavg_first + dom_oavg_best + dom_oavg_last + dom_oavg_avg + 
+                    yds_per_tm_pyds_first + yds_per_tm_pyds_best + yds_per_tm_pyds_last + yds_per_tm_pyds_avg + 
+                    bmi + x40_time + height + weight + bench + vertical + broad + shuttle + 
+                    x3_cone + wass + hass + hand_size + arm_length + 
+                    breakout20_age + breakout30_age + breakout20_flag + breakout30_flag + combine_participation + 
+                    max_rec_share + max_rec_tds_share + max_rec_g + max_yds_g + max_tds_g, 
+                  data = train, 
+                  trControl = control, 
+                  metric = "RMSE", 
+                  tuneList = list(
+                    stepwise = caretModelSpec(method = "lmStepAIC", tuneGrid = stepwise_tunegrid, trace = F, direction = "both"), 
+                    enet = caretModelSpec(method = "glmnet", tuneGrid = enet_tunegrid), 
+                    rf = caretModelSpec(method = "rf", tuneGrid = rf_tunegrid)
+                  ), 
+                  preProcess = c("center", "scale"), 
+                  importance = T)
+
+```
+
+
+## Draft Pick Only Baseline
+
+Before throwing all the variables into a model, I wanted to take a look at a quick linear regression using only draft round and draft pick to predict average PPR points as a baseline model. When predicting this regression model on the test data, I get a root-mean-square error (RMSE) of 3.795, which is an accuracy metric measuring the difference between the values predicted by the model and the values observed. Additionally, when plotting the predictions from the baseline model against the actual average PPR points in the test set, I get an \( R^2 \) value of 0.26, meaning about 26% of the variability in a player’s average PPR points can be explained by the predictions from this baseline model only consisting of draft capital. 
+
+```{r draft-regression-coefs, eval=F}
+
+# Draft Pick Regression Coefficients
+
+summary(lm_draft_pick)
+
+```
+
+
+```{r test-prediction-plot-draft-pick}
+
+## Make Test set predictions from draft capital and from models
+
+test_predictions <- test %>% 
+  select(player, school, draft_year, draft_pick, avg_ppr_ppg) %>% 
+  mutate(test_pred_draft_pick = predict(lm_draft_pick, newdata = test) ^ 2)
+
+# Plot Draft Pick Predictions against Average PPR PPG for Test Dataset
+
+ggplot(test_predictions, aes(x = test_pred_draft_pick, y = avg_ppr_ppg, label = player)) + 
+  geom_smooth(method = 'lm', formula = y ~ x) + 
+  stat_poly_eq(formula = y ~ x, 
+              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+              parse = TRUE) + 
+  geom_point() + 
+  geom_abline(slope = 1, intercept = 0, col = 'red', lty = 2) + 
+  geom_text(size = 2, nudge_x = 0, nudge_y = 0.5, check_overlap = T) +
+  ggtitle(paste("Draft Pick Prediction vs. Average PPR Points in First 4 Seasons \nTest Dataset \nRMSE:", 
+                round(RMSE(test_predictions$test_pred_draft_pick, test_predictions$avg_ppr_ppg), 3))) + 
+  labs(x = "Draft Pick Prediction", y = "Average PPR Points") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+The blue line in the plot shows the line of best fit between the predictions and the actual values in the test set, while the dotted red line represents the “perfect prediction line”, where the model prediction exactly equals the actual value. In the subsequent, more advanced models, I will be looking for significant improvements in the RMSE and \( R^2 \) values when making predictions on the test data. 
+
+
+## Stepwise Regression
+
+The first advanced modeling technique I decided to try using all variables was stepwise regression. Stepwise regression combines forward and backward selection techniques. It starts with only the most significant variable included in the model and either adds or subtracts a variable one-by-one based on which variable’s inclusion or exclusion most improves the model’s fit to the data according to a selected criterion (in this case, the Akaike Information Criterion, or AIC). The algorithm finishes once either adding or subtracting a variable from the final model would provide a worse fit to the data than the final model, based on AIC. While stepwise regression is a relatively fast way to select features, resulting models can suffer greatly from multicollinearity if highly correlated variables are included. This will skew variable coefficient estimates, make the model less interpretable, and may cause overfitting to the training data. 
+
+Below are the coefficient estimates for the variables included in the final stepwise regression model. 
+
+
+```{r stepwise-coefs}
+
+# Stepwise Regression Coefficients
+
+summ(model_list$stepwise$finalModel, digits = 4, vifs = T)
+
+```
+
+The most important part of this table, at least for this model, is the Variance Inflation Factor, or VIF, column. VIF measures multicollinearity between a variable and the remaining variables in a model. A VIF of 1 indicates that the variable is not correlated to other variables, while a VIF of greater than 5 indicates high multicollinearity and suggests that at least one variable should be removed from the model to address the issue. As you can see, nearly all the variables included in the stepwise regression have a VIF of greater than 5, as there are many variables included in the data that are highly correlated to each other. For example, best Dominator Rating is going to be highly correlated with best yards per team pass attempt, since Dominator Rating is calculated partially based on a player’s market share of his team’s total receiving production. Because of this, many predictors have unstable coefficient estimates and would have to be removed for the model to not grossly overfit the training data. However, for now, I’ll keep all the selected variables to show the effect of not dealing with multicollinearity when predicting on new data. 
+
+```{r test-predictions-plot-stepwise}
+
+test_predictions <- test_predictions %>% 
+  mutate(test_pred_stepwise = predict(model_list$stepwise, newdata = test) ^ 2)
+
+# Plot Stepwise Predictions against Average PPR PPG for Test Dataset
+
+ggplot(test_predictions, aes(x = test_pred_stepwise, y = avg_ppr_ppg, label = player)) + 
+  geom_smooth(method = 'lm', formula = y ~ x) + 
+  stat_poly_eq(formula = y ~ x, 
+              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+              parse = TRUE) + 
+  geom_point() + 
+  geom_abline(slope = 1, intercept = 0, col = 'red', lty = 2) + 
+  geom_text(size = 2, nudge_x = 0, nudge_y = 0.5, check_overlap = T) +
+  ggtitle(paste("Stepwise Prediction vs. Average PPR Points in First 4 Seasons \nTest Dataset \nRMSE:", 
+                round(RMSE(test_predictions$test_pred_stepwise, test_predictions$avg_ppr_ppg), 3))) + 
+  labs(x = "Stepwise Prediction", y = "Average PPR Points") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+Using the same prediction vs. actual performance plot that was created for the baseline model, it is easy to see how the stepwise regression model stacks up when predicting on new data. The RMSE value of 4.821 (compared to 3.795 in the baseline) and \( R^2 \) value of 0.071 (compared to 0.26 in the baseline) show how much the stepwise regression overfit the training data due to many highly correlated variables, and is thus not suited to make predictions on unseen data. While one possible solution would be to manually remove some of the highly correlated variables from the stepwise model and refit, the next modeling technique I used is better equipped to solve this issue. 
+
+
+## Elastic Net
+
+Regularization in machine learning is a way of making a statistical model less complex to avoid overfitting and improve generalizability to unseen data. This is often done by reducing coefficient estimates through penalties, also known as shrinking, and can work especially well when there is high multicollinearity between model variables. 
+
+Elastic net is a combination of two penalization techniques – ridge regression and LASSO. I won’t go into extreme detail about how these penalization techniques work. However, I’ll note that ridge regression reduces model complexity by shrinking variables but never shrinks them all the way to zero, while LASSO can shrink variables to zero and thus can be useful for feature selection purposes. The elastic net algorithm iterates through a collection of alpha and lambda hyperparameters to choose the combination that best represents the training data while implementing both ridge and LASSO penalization techniques. 
+
+In this case, the final model selected by the elastic net algorithm has an alpha value of 1 and lambda value of 0.1, which corresponds with a LASSO model. Below are the variables included in the final elastic net model, sorted by their relative importance. 
+
+
+```{r enet-coefs}
+
+# Elastic Net Coefficients
+
+#print(model_list$enet$finalModel$tuneValue)
+
+#coef(model_list$enet$finalModel, model_list$enet$bestTune$lambda)
+
+# Elastic Net Variable Importance Plot
+
+#plot(varImp(model_list$enet, scale = T))
+
+```
+
+
+```{r enet-variable-importance}
+
+enet_vars <- varImp(model_list$enet)$importance %>%
+  mutate(Variable = rownames(varImp(model_list$enet)$importance)) %>%
+  rename(Importance = Overall) %>%
+  filter(Importance > 0) %>%
+  arrange(desc(Importance))
+
+enet_vars <- enet_vars %>%
+  mutate(Variable = case_when(Variable == "log(draft_round)" ~ "Draft Round",
+                              Variable == "log(draft_pick)" ~ "Draft Pick", 
+                              Variable == "breakout20_age" ~ "20% Breakout Age", 
+                              Variable == "age_in_draft_year" ~ "Age in Draft Year", 
+                              Variable == "yds_per_tm_pyds_first" ~ "Yards per Team Pass Yards (1st Season)", 
+                              Variable == "dominator_avg" ~ "Average Dominator Rating", 
+                              Variable == "breakout30_age" ~ "30% Breakout Age", 
+                              Variable == "x40_time" ~ "40 Time", 
+                              Variable == "yds_per_tm_patt_avg" ~ "Yards per Team Pass Attempt (Average Season)", 
+                              TRUE ~ Variable))
+
+ggplot(enet_vars, aes(x = Importance, y = reorder(Variable, Importance))) + 
+  geom_col(fill = 'red') +
+  ggtitle("Elastic Net Model\nVariable Importance") + 
+  labs(x = "Relative Importance", y = "Variable") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+While draft round and draft pick are still considered the two most important variables, there are some interesting conclusions we can make from the other variables in the model. The inclusion of 20% Breakout Age, 30% Breakout Age, and Yards per Team Pass Yards (1st Season) indicate the importance of reaching specific production benchmarks early on in a player’s college career for achieving future success in the NFL. Age in Draft Year alludes to younger prospects, and specifically prospects who declare for the draft before their college eligibility is up, being more likely to succeed early in their NFL careers. Finally, Yards per Team Pass Attempt (Average Season) and Average Dominator Rating suggest that sustained production throughout the prospect’s college career is also important for predicting NFL success, although perhaps not quite as important as early college production.
+
+
+```{r test-predictions-plot-enet}
+
+test_predictions <- test_predictions %>% 
+  mutate(test_pred_enet = predict(model_list$enet, newdata = test) ^ 2)
+
+# Plot Elastic Net Predictions against Average PPR PPG for Test Dataset
+
+ggplot(test_predictions, aes(x = test_pred_enet, y = avg_ppr_ppg, label = player)) + 
+  geom_smooth(method = 'lm', formula = y ~ x) + 
+  stat_poly_eq(formula = y ~ x, 
+              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+              parse = TRUE) + 
+  geom_point() + 
+  geom_abline(slope = 1, intercept = 0, col = 'red', lty = 2) + 
+  geom_text(size = 2, nudge_x = 0, nudge_y = 0.5, check_overlap = T) +
+  ggtitle(paste("Elastic Net Prediction vs. Average PPR Points in First 4 Seasons \nTest Dataset \nRMSE:", 
+                round(RMSE(test_predictions$test_pred_enet, test_predictions$avg_ppr_ppg), 3))) + 
+  labs(x = "Elastic Net Prediction", y = "Average PPR Points") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+Once again plotting predictions vs. actual performance for the test data, this time I find that the elastic net model was a significant improvement over the baseline model, as it appears that the regularization worked well for generalizing to unseen data. With an RMSE of 3.434 and an \( R^2 \) value of 0.4, the elastic net has become the model to beat with one modeling technique remaining to test. 
+
+## Random Forest
+
+The final and most complex algorithm I used to evaluate predictions on the test data was a random forest. Random forests are constructed by building hundreds of decision trees consisting of randomly selected features and averaging the results of all the trees to produce a final prediction. By combining the predictions of so many decision trees, a random forest creates an ensemble model that reduces overfitting and is often quite a powerful predictor. Random forests can be less interpretable than parametric models such as an elastic net model, since it is nearly impossible to visualize the many trees that make up the forest. However, while interpretability is one of the main objectives of this model, I wanted to try a random forest as well just because it often is such a powerful and flexible technique. 
+
+After building an initial random forest model with all variables included, I plotted the variables in order of importance, then rebuilt the random forest including only the 20 most important variables, which are shown below. While multicollinearity shouldn’t have a huge effect on the predictions made by a random forest model, since each decision tree in the forest consists of a different set of variables, it will affect variable importance, so it is best to not rely on this variable importance plot until all highly correlated variables are removed from the model.
+
+
+```{r rf-vars}
+
+# Random Forest Variable Importance Plot
+
+#plot(varImp(model_list$rf, scale = T))
+
+```
+
+
+```{r test-predictions-plot-rf, eval=F}
+
+rf_vars <- varImp(model_list$rf)$importance %>%
+  mutate(Variable = rownames(varImp(model_list$rf)$importance)) %>%
+  rename(Importance = Overall) %>%
+  filter(Importance > 0) %>%
+  arrange(desc(Importance))
+
+test_predictions <- test_predictions %>% 
+  mutate(test_pred_rf = predict(model_list$rf, newdata = test) ^ 2)
+
+# Plot Random Forest Predictions against Average PPR PPG for Test Dataset
+
+ggplot(test_predictions, aes(x = test_pred_rf, y = avg_ppr_ppg, label = player)) + 
+  geom_smooth(method = 'lm', formula = y ~ x) + 
+  stat_poly_eq(formula = y ~ x, 
+              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+              parse = TRUE) + 
+  geom_point() + 
+  geom_abline(slope = 1, intercept = 0, col = 'red', lty = 2) + 
+  geom_text(size = 2, nudge_x = 0, nudge_y = 0.5, check_overlap = T) +
+  ggtitle(paste("Random Forest Prediction vs. Average PPR Points in First 4 Seasons \nTest Dataset \nRMSE:", 
+                round(RMSE(test_predictions$test_pred_rf, test_predictions$avg_ppr_ppg), 3))) + 
+  labs(x = "Random Forest Prediction", y = "Average PPR Points") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+```{r rf-20-vars}
+
+# Random Forest with 20 Most Important Variables
+
+rf_20 <- train(sqrt(avg_ppr_ppg) ~ log(draft_pick) + log(draft_round) + yds_per_tm_pyds_first + yds_per_tm_patt_avg + yds_per_tm_pyds_avg + 
+                 rec_g + breakout20_age + dominator_avg + max_yds_g + dominator_first + 
+                 yds_per_tm_patt_first + breakout30_age + dom_oavg_avg + yds_g + yds_per_tm_patt_above_tmavg_last + 
+                 yds_per_tm_patt_above_tmavg_first + max_rec_g + dom_oavg_last + yds_per_tm_patt_above_tmavg_avg + yds_per_tm_pyds_best, 
+                  data = train, 
+                  method = "rf", 
+                  tuneGrid = rf_tunegrid,
+                  trControl = control, 
+                  metric = "RMSE", 
+                  preProcess = c("center", "scale"), 
+                  importance = T)
+
+model_list[["rf_20"]] <- rf_20
+
+#plot(varImp(model_list$rf_20, scale = T))
+
+```
+
+
+```{r rf-20-variable-importance}
+
+rf_20_vars <- varImp(model_list$rf_20)$importance %>%
+  mutate(Variable = rownames(varImp(model_list$rf_20)$importance)) %>%
+  rename(Importance = Overall) %>%
+  filter(Importance > 0) %>%
+  arrange(desc(Importance))
+
+rf_20_vars <- rf_20_vars %>%
+  mutate(Variable = case_when(Variable == "log(draft_round)" ~ "Draft Round",
+                              Variable == "log(draft_pick)" ~ "Draft Pick", 
+                              Variable == "yds_per_tm_pyds_first" ~ "Yards per Team Pass Yards (1st Season)", 
+                              Variable == "dominator_avg" ~ "Dominator Rating (Average Season)",
+                              Variable == "yds_per_tm_patt_avg" ~ "Yards per Team Pass Attempt (Average Season)", 
+                              Variable == "breakout20_age" ~ "20% Breakout Age", 
+                              Variable == "dominator_first" ~ "Dominator Rating (1st Season)", 
+                              Variable == "breakout30_age" ~ "30% Breakout Age", 
+                              Variable == "yds_per_tm_pyds_avg" ~ "Yards per Team Pass Yards (Average Season)", 
+                              Variable == "dom_oavg_avg" ~ "Dominator Rating Over Average (Average Season)",
+                              Variable == "yds_per_tm_patt_above_tmavg_first" ~ "Yards per Pass Attempt Above Team Avg (1st Season)", 
+                              Variable == "yds_per_tm_patt_above_tmavg_avg" ~ "Yards per Team Pass Attempt Above Team Avg (Average Season)", 
+                              Variable == "rec_g" ~ "Receptions per Game (All Seasons)",
+                              Variable == "max_rec_g" ~ "Receptions per Game (Best Season)",
+                              Variable == "yds_g" ~ "Yards per Game (All Seasons)",
+                              Variable == "yds_per_tm_patt_first" ~ "Yards per Team Pass Attempt (1st Season)",
+                              Variable == "dom_oavg_last" ~ "Dominator Rating Over Average (Last Season)",
+                              Variable == "yds_per_tm_patt_above_tmavg_last" ~ "Yards per Pass Attempt Above Team Avg (Last Season)", 
+                              Variable == "max_yds_g" ~ "Yards per Game (Best Season)",
+                              Variable == "yds_per_tm_pyds_best" ~ "Yards per Team Pass Yards (Best Season)", 
+                              TRUE ~ Variable
+                              ))
+
+ggplot(rf_20_vars, aes(x = Importance, y = reorder(Variable, Importance))) + 
+  geom_col(fill = 'blue') +
+  ggtitle("Random Forest 20 Model \nVariable Importance") + 
+  labs(x = "Relative Importance", y = "Variable") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+When plotting predictions on the test set against actual values, I see that the random forest performs better than the baseline model but not as well as the elastic net, with an RMSE of 3.493 and an \( R^2 \) value of 0.35. Because the elastic net is the most interpretable model that also performs well on the test data, I will use that going forward to make predictions on the 2017-2020 rookie wide receivers. 
+
+
+```{r test-predictions-plot-rf-20}
+
+test_predictions <- test_predictions %>% 
+  mutate(test_pred_rf_20 = predict(model_list$rf_20, newdata = test) ^ 2)
+
+# Plot Random Forest 20 Predictions against Average PPR PPG for Test Dataset
+
+ggplot(test_predictions, aes(x = test_pred_rf_20, y = avg_ppr_ppg, label = player)) + 
+  geom_smooth(method = 'lm', formula = y ~ x) + 
+  stat_poly_eq(formula = y ~ x, 
+              aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+              parse = TRUE) + 
+  geom_point() + 
+  geom_abline(slope = 1, intercept = 0, col = 'red', lty = 2) + 
+  geom_text(size = 2, nudge_x = 0, nudge_y = 0.5, check_overlap = T) +
+  ggtitle(paste("Random Forest 20 Prediction vs. Average PPR Points in First 4 Seasons \nTest Dataset \nRMSE:", 
+                round(RMSE(test_predictions$test_pred_rf_20, test_predictions$avg_ppr_ppg), 3))) + 
+  labs(x = "Random Forest 20 Prediction", y = "Average PPR Points") + 
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+# 2017-2019 Draft Predictions
+
+Now that the modeling process is over (for now), let’s take a look at how the 2017, 2018, and 2019 wide receiver classes stack up according to my final model. I included two tables that show average PPR PPG so far and the model’s prediction for each player. The first table also includes draft capital data, while the second table includes all other variables from the model, which we can use to analyze potential hits and misses from each draft and brainstorm ways that the model could possibly be improved in the future. 
+
+
+```{r predictions-2017-2020}
+
+## Make predictions on 2017-2020 rookies
+
+rookies_data <- data %>% filter(draft_year >= 2017)
+rookie_predictions <- predict(model_list$enet, rookies_data) ^ 2
+
+rookies <- rookies_data %>% select(player, school, draft_year, draft_round, draft_pick, 
+                                   breakout20_age, yds_per_tm_pyds_first, age_in_draft_year, breakout30_age, yds_per_tm_patt_avg, dominator_avg, 
+                                   avg_ppr_ppg) %>% 
+  cbind(rookie_predictions) %>%
+  mutate(yds_per_tm_pyds_first = round(yds_per_tm_pyds_first, 3), 
+         yds_per_tm_patt_avg = round(yds_per_tm_patt_avg, 3), 
+         dominator_avg = round(dominator_avg, 3),
+         avg_ppr_ppg = round(avg_ppr_ppg, 2), 
+         rookie_predictions = round(rookie_predictions, 2), 
+         breakout20_age = ifelse(breakout20_age > age_in_draft_year, NA, breakout20_age), 
+         breakout30_age = ifelse(breakout30_age > age_in_draft_year, NA, breakout30_age)) %>%
+  filter(player != "LYNN BOWDEN JR") %>% # Bowden drafted as RB
+  rename(Player = player, 
+         School = school, 
+         `Draft Year` = draft_year, 
+         `Draft Round` = draft_round, 
+         `Draft Pick` = draft_pick,
+         `20% Breakout Age` = breakout20_age, 
+         `Age in Draft Year` = age_in_draft_year,
+         `Yds / Team Pass Yd (1st Season)` = yds_per_tm_pyds_first,
+         `30% Breakout Age` = breakout30_age, 
+         `Yds / Team Pass Att (Average Season)` = yds_per_tm_patt_avg,
+         `Average Dominator Rating` = dominator_avg, 
+         `Average PPR PPG` =  avg_ppr_ppg, 
+         `Model Prediction` = rookie_predictions) %>%
+  arrange(desc(`Model Prediction`))
+
+```
+
+
+```{r predictions-table-function}
+
+## Function to create Predictions tables
+
+# Create base table
+
+prediction_table <- function(data, start_year = 2017, end_year = 2020, model_vars = F){
+  
+  # Assign color palettes
+
+  make_color_palette <- function(colors, bias = 1) {
+    get_color <- colorRamp(colors, bias = bias)
+    function(x) rgb(get_color(x), maxColorValue = 255)
+  }
+  
+  prediction_color_high <- make_color_palette(c("#ffffff", "#f2fbd2", "#c9ecb4", "#93d3ab", "#35b0ab"), bias = 2)
+  prediction_color_low <- make_color_palette(c("#35b0ab", "#93d3ab", "#c9ecb4", "#f2fbd2", "#ffffff"), bias = 2)
+  
+  # Format player, draft, model variable, and prediction columns
+  
+  player_cols <- c("Player", "School")
+  draft_cols <- c("Draft Year", "Draft Round", "Draft Pick")
+  model_cols <- c("20% Breakout Age", "Yds / Team Pass Yd (1st Season)", "Age in Draft Year", "30% Breakout Age", 
+                  "Yds / Team Pass Att (Average Season)", "Average Dominator Rating")
+  prediction_cols <- c("Average PPR PPG", "Model Prediction")
+  
+  player_column <- function(...) {
+    colDef(
+      width = 150,
+      align = "center")
+  }
+  
+  draft_column <- function(...) {
+    colDef(
+      filterable = T,
+      width = 70, 
+      align = "center")
+  }
+  
+  breakout20_age_column <- function(...) {
+    colDef(
+      width = 70, 
+      align = "center", 
+      style = function(value) {
+        min_value <- min(data$`20% Breakout Age`, na.rm = T)
+        max_value <- max(data$`20% Breakout Age`, na.rm = T)
+        scaled <- ifelse(is.na(value), 1, (value - min_value) / (max_value - min_value))
+        color <- prediction_color_low(scaled)
+        list(background = color)
+      })
+  }
+  
+  yds_per_tm_pyds_first_column <- function(...) {
+    colDef(
+      width = 70, 
+      align = "center", 
+      style = function(value) {
+        min_value <- min(data$`Yds / Team Pass Yd (1st Season)`, na.rm = T)
+        max_value <- max(data$`Yds / Team Pass Yd (1st Season)`, na.rm = T)
+        scaled <- ifelse(is.na(value), 0, (value - min_value) / (max_value - min_value))
+        color <- prediction_color_high(scaled)
+        list(background = color)
+      })
+  }
+  
+  age_in_draft_year_column <- function(...) {
+    colDef(
+      width = 80, 
+      align = "center", 
+      style = function(value) {
+        min_value <- min(data$`Age in Draft Year`, na.rm = T)
+        max_value <- max(data$`Age in Draft Year`, na.rm = T)
+        scaled <- ifelse(is.na(value), 1, (value - min_value) / (max_value - min_value))
+        color <- prediction_color_low(scaled)
+        list(background = color)
+      })
+  }
+  
+  breakout30_age_column <- function(...) {
+    colDef(
+      width = 70, 
+      align = "center", 
+      style = function(value) {
+        min_value <- min(data$`30% Breakout Age`, na.rm = T)
+        max_value <- max(data$`30% Breakout Age`, na.rm = T)
+        scaled <- ifelse(is.na(value), 1, (value - min_value) / (max_value - min_value))
+        color <- prediction_color_low(scaled)
+        list(background = color)
+      })
+  }
+  
+  yds_per_tm_patt_avg_column <- function(...) {
+    colDef(
+      width = 70, 
+      align = "center", 
+      style = function(value) {
+        min_value <- min(data$`Yds / Team Pass Att (Average Season)`, na.rm = T)
+        max_value <- max(data$`Yds / Team Pass Att (Average Season)`, na.rm = T)
+        scaled <- ifelse(is.na(value), 0, (value - min_value) / (max_value - min_value))
+        color <- prediction_color_high(scaled)
+        list(background = color)
+      })
+  }
+  
+  dominator_avg_column <- function(...) {
+    colDef(
+      width = 80, 
+      align = "center", 
+      style = function(value) {
+        min_value <- min(data$`Average Dominator Rating`, na.rm = T)
+        max_value <- max(data$`Average Dominator Rating`, na.rm = T)
+        scaled <- ifelse(is.na(value), 0, (value - min_value) / (max_value - min_value))
+        color <- prediction_color_high(scaled)
+        list(background = color)
+      })
+  }
+  
+  prediction_column1 <- function(...) {
+    colDef(
+      width = 80, 
+      align = "center", 
+      style = function(value) {
+        min_value <- min(min(data$`Average PPR PPG`), min(data$`Model Prediction`))
+        max_value <- max(max(data$`Average PPR PPG`), max(data$`Model Prediction`))
+        scaled <- (value - min_value) / (max_value - min_value)
+        color <- prediction_color_high(scaled)
+        list(background = color)
+      })
+  }
+  
+  prediction_column2 <- function(...) {
+    colDef(
+      width = 90, 
+      align = "center", 
+      style = function(value) {
+        min_value <- min(data$`Model Prediction`)
+        max_value <- max(data$`Model Prediction`)
+        scaled <- (value - min_value) / (max_value - min_value)
+        color <- prediction_color_high(scaled)
+        list(background = color)
+      })
+  }
+  
+  
+  # Build table
+  
+  if(model_vars == F){
+    
+    data <- data %>% filter(`Draft Year` >= start_year, `Draft Year` <= end_year) %>% select(-model_cols)
+    
+    reactable(
+    data,
+    style = list(fontFamily = "Work Sans, sans-serif", fontSize = "10px"), 
+    pagination = T,
+    striped = F, 
+    defaultSorted = "Model Prediction",
+    defaultSortOrder = "desc",
+    defaultColGroup = colGroup(headerClass = "group-header"),
+    columnGroups = list(
+      colGroup(name = "Player Info", columns = player_cols),
+      colGroup(name = "Draft Capital", columns = draft_cols),
+      colGroup(name = "Performance in First 4 Seasons", columns = prediction_cols)
+    ),
+    defaultColDef = colDef(class = "cell", headerClass = "header"),
+    columns = list(
+      Player = player_column(),
+      School = player_column(),
+      `Draft Year` = draft_column(),
+      `Draft Round` = draft_column(), 
+      `Draft Pick` = draft_column(), 
+      `Average PPR PPG` = prediction_column1(), 
+      `Model Prediction` = prediction_column1()
+      ),
+    showSortIcon = TRUE,
+    borderless = FALSE
+  )
+    
+  }else{
+    
+    data <- data %>% filter(`Draft Year` >= start_year, `Draft Year` <= end_year) %>% select(-School, -draft_cols)
+    
+    reactable(
+    data,
+    style = list(fontFamily = "Work Sans, sans-serif", fontSize = "10px"), 
+    pagination = T,
+    striped = F, 
+    defaultSorted = "Model Prediction",
+    defaultSortOrder = "desc",
+    defaultColGroup = colGroup(headerClass = "group-header"),
+    columnGroups = list(
+      colGroup(name = "", columns = "Player"),
+      colGroup(name = "Additional Model Variables", columns = model_cols), 
+      colGroup(name = "Performance in First 4 Seasons", columns = prediction_cols)
+    ),
+    defaultColDef = colDef(class = "cell", headerClass = "header"),
+    columns = list(
+      Player = player_column(),
+      `20% Breakout Age` = breakout20_age_column(), 
+      `Yds / Team Pass Yd (1st Season)` = yds_per_tm_pyds_first_column(),
+      `Age in Draft Year` = age_in_draft_year_column(), 
+      `30% Breakout Age` = breakout30_age_column(), 
+      `Yds / Team Pass Att (Average Season)` = yds_per_tm_patt_avg_column(),
+      `Average Dominator Rating` = dominator_avg_column(), 
+      `Average PPR PPG` = prediction_column1(), 
+      `Model Prediction` = prediction_column1()
+      ),
+    showSortIcon = TRUE,
+    borderless = FALSE
+    )
+  }
+  
+}
+
+```
+
+
+```{r predictions-2017-2019}
+
+prediction_table(rookies, start_year = 2017, end_year = 2019, model_vars = F)
+prediction_table(rookies, start_year = 2017, end_year = 2019, model_vars = T)
+
+```
+
+
+## Model Potential Hits
+
+**Christian Kirk** – According to [fantasyfootballcalculator.com’s](fantasyfootballcalculator.com) historical rookie ADP data, Kirk was the 6th receiver taken on average in 2018 dynasty rookie drafts, after DJ Moore, Calvin Ridley, Courtland Sutton, Anthony Miller, and Michael Gallup. However, the model ranked him 3rd in the 2018 class due to impressive 20% and 30% Breakout Ages of 18 and 19, respectively, along with a very solid Average Dominator Rating of 32.7%. So far, he’s produced the 3rd most average PPR PPG in the 2018 draft class, behind only 1st round picks Moore and Ridley. It’s important to note that Kirk has been fortunate to play in a high-volume passing offense with the Arizona Cardinals and to catch passes from an outstanding young quarterback in Kyler Murray. Team fit often plays a role in the success of prospects and can be difficult to measure during the prospect evaluation process, so it is one of the many variables, along with a statistical model, to keep in mind when making decisions on draft day. 
+
+**DJ Chark** – Chark is another receiver that the model identified to be a more productive receiver than his ADP implied. He was the 10th receiver chosen in 2018 rookie drafts on average, taken behind prospects such as Dante Pettis and Antonio Callaway. However, his second round draft capital, a 20% Breakout Age of 19, and early declaration status as a 21 year old led to the model predicting him as the 6th most productive receiver in the 2018 class. This is exactly the level he has produced at so far, averaging 9.82 PPR PPG in his first two seasons after breaking out in his sophomore campaign last season. While he has only played two of the four seasons the model predicts on, it’s clear so far that Chark has outproduced early expectations in becoming the clear number one receiver for the Jacksonville Jaguars. 
+
+## Model Potential Misses
+
+**Corey Davis** – While Davis has averaged 8.77 PPR PPG in his first three seasons, ranking 8th among receivers taken in the 2017 Draft, he was predicted by the model to be the most productive receiver across all three drafts in 2017, 2018, and 2019. So what went wrong? Davis was an extremely productive receiver during his four college seasons at Western Michigan, as he set the all-time FBS record for receiving yards in a career. He eclipsed both the 20% and 30% Breakout benchmarks during his true freshman season at 18 years old, and he averaged a 45.5% Dominator Rating over his four seasons, a truly remarkable level of production.
+
+Davis was drafted 5th overall in the 2017 Draft by the Tennessee Titans, and he was the consensus first receiver taken in 2017 rookie drafts. However, the Titans may not have been the best situation for his fantasy production. Since then, the Titans have ranked 8th, 2nd, and 3rd the last three seasons in run rate, according to [sharpfootballstats.com](sharpfootballstats.com), meaning the Titans have chosen to run the ball on a higher percentage of plays than almost every team in the league over that span. This lack of passing volume undoubtedly has an impact on Davis’s overall receiving volume. However, AJ Brown was drafted by the Titans as a rookie receiver in 2019, and he immediately stepped in and averaged 13.57 PPR PPG in his first season, so the offensive system isn’t the only culprit to blame for Davis’s relative lack of production. 
+
+As a follow-up to this model, it might be worth taking a look at the effect that playing at smaller schools has on market share statistics such as Dominator Rating and Breakout Age. Playing at Western Michigan in the Mid-American Conference (MAC), Davis didn’t have nearly as much competition for targets as he would have if he attended a larger school in the ACC or Big Ten. Because of this, his market share metrics may have been inflated compared to players from larger schools, which would also inflate his production prediction from the model. Adjusting certain metrics for team strength, strength of schedule, or conference would be a possible next step to ensure that differences in college competition levels are accounted for. 
+
+**Terry McLaurin** – By all accounts, McLaurin’s explosion of 13.71 PPR PPG during his rookie season in 2019 is a complete outlier based on his college production. He was the 14th receiver selected in 2019 dynasty rookie drafts on average, and the model predicted him to have the 17th best average PPR PPG out of 19 receivers in the 2019 draft included in the data set. He never eclipsed a 20% Dominator Rating in a college season, averaged only a 12.6% Dominator Rating throughout his college career, and was 23 years old by the time he was selected in the draft, making him one of the oldest rookies in the class. 
+
+While there are no variables in the model that suggest much of a chance of NFL production for McLaurin besides his third round draft capital, it is possible that his receiving role in college may have caused his market share metrics to suffer. McLaurin played at Ohio State, a school that is consistently ripe with talent and produced several drafted receiver prospects during McLaurin’s time at the school. He spent the 2016 season behind 2017 2nd round pick Curtis Samuel on the depth chart, and during the 2017 and 2018 seasons, he caught fewer passes than both 2019 2nd round pick Parris Campbell and 2020 7th round pick KJ Hill. 
+
+While you would ideally like to see a prospect produce at a high level in college even when surrounded by other standout receivers, it may be beneficial to include a metric that tracks the receiving talent around a prospect to account for cases like McLaurin’s where there are many capable mouths to feed within the same college offense. For example, it may be interesting to record whether or not a prospect had a teammate who was also drafted as a receiver in the same draft, as prospects in offenses with other NFL-level talent may be less likely to dominate the market share of their college’s offense than prospects who are far and away the most talented receivers at their school. 
+
+
+# 2020 Predictions
+
+Finally, we have average PPR PPG predictions for the 2020 wide receiver draft class. 
+
+In areas like the NFL Draft that have historically been such inexact sciences, a statistical model is best served as a tool in the toolbox of player evaluation, rather than as the entire toolbox itself. As we saw with the previous examples of model hits and misses from 2017-2019, there are outside variables that impact success that aren’t currently measured by the model, including team fit, offensive philosophy, and competition from college or professional teammates. Because all of these factors must all be taken into consideration during the decision making process, I prefer to use model results to shift prospects slightly above or below their consensus values rather than as my own personal ranking system, as I realize an NFL Draft model cannot possibly account for everything that determines the success of a prospect. 
+
+Based on their rookie draft ADP, here are a couple prospects I am targeting in rookie drafts, as well as a couple prospects I would pass on this year, according to a combination of model results and the aforementioned outside variables. 
+
+```{r predictions-2020}
+
+prediction_table(rookies, start_year = 2020, end_year = 2020, model_vars = F)
+prediction_table(rookies, start_year = 2020, end_year = 2020, model_vars = T)
+
+```
+
+
+## Prospects to Target
+
+**Jalen Reagor** - Reagor may have accumulated underwhelming counting stats during his three years at TCU, but his market share metrics make him a screaming buy in rookie drafts according to the model. He surpassed a 20% Dominator Rating in his 18-year-old freshman season, had a whopping 44.2% Dominator Rating as a 19-year-old sophomore, and finished his college career with an Average Dominator Rating of 32%. So, while Reagor only recorded a subpar 576, 1,061, and 611 receiving yards in his three college seasons, this was more due to the lack of production from the TCU passing offense as a whole, as Reagor accounted for more than his fair share of the team’s receiving yards and touchdowns. 
+
+In addition, Reagor was drafted in the first round by an Eagles team that includes a talented young quarterback in Carsen Wentz and does not return much meaningful receiving production from last season. With oft-injured Alshon Jeffery and new acquisitions Desean Jackson and Marquise Goodwin all reaching 30 years of age by the end of the 2020 season, the only young receiver that Reagor will have to compete with for targets is J.J. Arcega-Whiteside, who underperformed when given opportunity during his rookie campaign in 2019. Reagor is currently being taken as the 4th receiver on average in rookie drafts, behind Jerry Jeudy, CeeDee Lamb, and Henry Ruggs III. However, based on his model prediction and his immediate and long-term fits within the Eagles offense, I would feel comfortable drafting him in the same tier as Jeudy and Lamb, and I think that he is an absolute bargain if he falls to the third receiver in your rookie draft. 
+
+**Bryan Edwards** - Edwards was taken in the third round with the 81st overall pick by the Las Vegas Raiders and is currently the 13th receiver taken in rookie drafts on average. Yet, he is the 11th ranked receiver by the model and grades out higher than second round picks Michael Pittman Jr., Chase Claypool, and Van Jefferson. Edwards surpassed the 20% Dominator Rating threshold during his age 18 freshman season at South Carolina, recording 44 receptions for 590 yards and 4 touchdowns. He steadily improved his production in each of his collegiate seasons, posting an impressive 40.3% Dominator Rating in his senior season, which would have been even higher had he not missed the last two games of the season due to a knee injury. In addition, his Average Dominator Rating of 29.6%, despite playing alongside 2019 second round pick Deebo Samuel during his first three seasons, indicate that Edwards was highly productive even while competing for targets with other NFL talent. 
+
+On top of his outstanding production, Edwards joins a Raiders receiving corps that is looking to upgrade this season. With only 28-year-old Tyrell Williams and 2019 5th round pick Hunter Renfrow returning as significant mainstays on their receiving depth chart entering the 2020 offseason, the Raiders selected Alabama receiver Henry Ruggs III in the first round and paired him with Edwards in the third round of the Draft. Spending multiple picks on receivers in the same draft tells me that the Raiders weren’t happy with their personnel at the position and that they will likely give this pair of 21-year-olds every opportunity to step in and succeed. For me, Edwards fits in as a top 10 receiver in this class based on his college production and the potential for immediate targets with the Raiders, and I would feel comfortable drafting him anywhere in the 7th to 10th receiver range alongside prospects such as Tee Higgins, Laviska Shenault Jr., Denzel Mims, and Michael Pittman Jr. 
+
+## Prospects to Avoid
+
+**Henry Ruggs III** - While Ruggs enters the exact same situation as Edwards and has the highest draft capital in this class after being selected 12th overall by the Raiders, his college production profile pushes him down the model’s rankings and makes him more of a speculative fantasy draft choice predicated on upside. During his three seasons at Alabama, Ruggs never reached a 20% Dominator Rating in a single season, let alone a 30% Dominator Rating, and averaged only a 17.3% Dominator Rating for his career, ranking 22nd out of the 33 prospects in the 2020 data set. Playing alongside fellow 2020 first round receiver Jerry Jeudy and 2021 Draft prospects Jaylen Waddle and Devonta Smith, Ruggs made up a much smaller market share of his team’s passing offense than you would expect for the first receiver selected in a draft. 
+
+When watching his highlights, it’s clear to see why the Raiders are intrigued by Ruggs’s potential. He ran a 4.28 40-yard dash at the NFL combine, which was the fastest in the 2020 receiver class, and some NFL offenses thrive on having a receiver who can stretch the field and keep defenses honest. However, Ruggs is currently being taken as the third receiver in rookie drafts on average, behind only Jeudy and Lamb. His lack of college production compared to fellow first rounders Reagor and Justin Jefferson pushes him down to the fifth receiver in the draft according to the model. Given that Reagor and Jefferson have similar paths to playing time and targets as Ruggs, I wouldn’t select Ruggs any earlier than the fifth receiver in the draft, which means I probably won’t be taking him in any drafts this year unless he falls farther than expected. 
+
+**Van Jefferson** - Jefferson is similar to Ruggs in that his college production doesn’t match his draft capital. Although Jefferson was the 12th receiver selected in the 2020 Draft, the model ranks him 21st out of the 33 receivers in the data set, a prediction that is almost solely based on his second-round draft pedigree. After redshirting his freshman season, he played four years of college football, with the first two at Ole Miss and the last two at Florida. Even though Jefferson will be 24 years old before he takes an NFL snap as the oldest receiver in this class, he still didn’t produce as much of his team’s offense as you’d hope for from a four-year receiver. Like Ruggs, he never surpassed a 20% Dominator Rating, and his 14.2% Average Dominator Rating for his career ranks 28th of the 33 2020 receivers. 
+
+With his market share statistics suffering, the model ranks him as the 22nd receiver in this class, while he is currently being taken as the 16th receiver in rookie drafts on average, ahead of prospects such as Chase Claypool and Gabriel Davis. Given that he is joining a crowded receiving group with the Los Angeles Rams that includes established veterans Robert Woods and Cooper Kupp, who are still in their primes, I am comfortable passing on Jefferson even in the later rounds of rookie drafts. 
+
+# Next Steps
+
+*	Look into conference-adjusted or team strength-adjusted metrics to account for players dominating market share at smaller schools and players competing with other NFL talent for targets in college
+*	Remove highly correlated variables from stepwise regression and random forest models to see how variable importance in each model compares to the elastic net model
+

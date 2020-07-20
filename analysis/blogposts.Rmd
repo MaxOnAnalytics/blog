@@ -10,16 +10,39 @@ editor_options:
 
 
 <div class = "row">
+<div class = "col-md-8">
 
-## [5/12/2020 - Kobe - Looking Back at a Laker Legend](20200512-Kobe---Looking-Back-at-a-Laker-Legend.html)
+## [Predicting the Next Best Fantasy WR](20200719-Predicting-the-Next-Best-Fantasy-WR.html)
+#### July 19, 2020
 
+</div>
 </div>
 
 <div class = "row">
-<div class = "col-md-6">
+<div class = "col-md-8">
 
-[![5/12/2020 - Kobe - Looking Back at a Laker Legend](assets/20200512/Kobe Bryant Picture.jpg)](20200512-Kobe---Looking-Back-at-a-Laker-Legend.html)
+[![Predicting the Next Best Fantasy WR](assets/20200719/Odell Beckham Draft.jpg)](20200719-Predicting-the-Next-Best-Fantasy-WR.html)
 
 </div>
 </div>
 
+
+
+
+
+<div class = "row">
+<div class = "col-md-8">
+
+## [Kobe - Looking Back at a Laker Legend](20200512-Kobe---Looking-Back-at-a-Laker-Legend.html)
+#### May 12, 2020
+
+</div>
+</div>
+
+<div class = "row">
+<div class = "col-md-8">
+
+[![Kobe - Looking Back at a Laker Legend](assets/20200512/Kobe Bryant Picture.jpg)](20200512-Kobe---Looking-Back-at-a-Laker-Legend.html)
+
+</div>
+</div>

@@ -2,7 +2,7 @@
 
 A sports analytics blog developed by Bryant Molloy using [workflowr][].
 
-Blog posts can be found at [maxonanalytics][].
+Blog posts can be found [here][].
 
 [workflowr]: https://github.com/jdblischak/workflowr
-[maxonanalytics]: https://maxonanalytics.github.io/blog/
+[here]: https://maxonanalytics.github.io/blog/

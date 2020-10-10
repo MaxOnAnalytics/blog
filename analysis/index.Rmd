@@ -1,5 +1,5 @@
 ---
-#title: "Home"
+title: "Home"
 site: workflowr::wflow_site
 output:
   workflowr::wflow_html:
@@ -9,6 +9,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r, echo=F, warning=F, message=F}
-knitr::include_graphics("assets/MaxOn Analytics Logo.png")
-```
+<center>
+![MaxOn Analytics](assets/MaxOn Analytics Logo.png)
+</center>

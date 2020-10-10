@@ -12,6 +12,26 @@ editor_options:
 <div class = "row">
 <div class = "col-md-8">
 
+## [Fantasy Football Salary Cap Lineup Optimizer](20201010-Fantasy-Football-Salary-Cap-Lineup-Optimizer.html)
+#### October 10, 2020
+
+</div>
+</div>
+
+<div class = "row">
+<div class = "col-md-8">
+
+[![Fantasy Football Salary Cap Lineup Optimizer](assets/20201010/ESPN Fantasy Football.jpg)](20201010-Fantasy-Football-Salary-Cap-Lineup-Optimizer.html)
+
+</div>
+</div>
+
+
+
+
+<div class = "row">
+<div class = "col-md-8">
+
 ## [Predicting the Next Best Fantasy WR](20200719-Predicting-the-Next-Best-Fantasy-WR.html)
 #### July 19, 2020
 
@@ -25,7 +45,6 @@ editor_options:
 
 </div>
 </div>
-
 
 
 

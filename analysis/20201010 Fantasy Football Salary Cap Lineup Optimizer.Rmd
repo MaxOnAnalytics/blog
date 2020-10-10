@@ -1,0 +1,79 @@
+---
+title: "Fantasy Football Salary Cap Lineup Optimizer"
+date: "October 10, 2020"
+output: workflowr::wflow_html
+---
+
+```{r read-settings, include=F, cache=F}
+# Read in global document settings
+knitr::read_chunk("./analysis/doc_settings.R")
+```
+
+```{r knitr-opts-chunk, include=F}
+# Set chunk settings
+```
+
+<center>
+
+![](assets/20201010/ESPN Fantasy Football.jpg)
+
+</center>
+
+
+```{r libraries, include=F}
+library(shiny)
+```
+
+
+Against all odds, as we approach the middle of October, the 2020 NFL season season is underway, which means thousands of fantasy football drafts were held in late August and early September. From casual work leagues with a grand prize of office bragging rights to high-stakes leagues comprised of analytics experts, fantasy football has become one of the most popular sources of entertainment in the world during the fall season. In fact, according to the Fantasy Sports & Gaming Assocation, nearly 50 million people played fantasy football in 2017, and many, including myself, learn a lot more about the NFL and football in general as a result of playing fantasy football and watching games every Sunday with a special rooting interest in mind. 
+
+
+## Snake vs. Salary Cap Drafts
+
+
+The majority of fantasy football leagues, including most casual leagues, conduct snake drafts to select players to each team before the season. In a snake draft, each team has one pick per round, and the first round is set with a predetermined order. For each round following the first round, the order of team selections is the reverse of the previous round, as the draft "snakes" its way through each team. For example, the team who picks 1st in the first round will pick last in the second round, the team who picks 2nd in the first round will pick second-to-last in the second round, and so on. In a 10-team league, the team with the 1st overall pick will have the 1st pick (1st pick of 1st round), 20th pick (last pick of 2nd round), 21st pick (1st pick of 3rd round), 40th pick (last pick of 4th round), and 41st pick (1st pick of 5th round) in the draft through the first five rounds, while the team with the 10th overall pick will have the 10th pick (last pick of 1st round), 11th pick (1st pick of 2nd round), 30th pick (last pick of 3rd round), 31st pick (1st pick of 4th round), and 50th pick (last pick of 5th round). 
+
+
+The other main way in which fantasy football leagues can assign players to teams is through a salary cap draft, also known as an auction draft. In salary cap leagues, each team is given a budget to spend on their roster (typically $200 in ESPN leagues). Instead of snaking through each team to make selections, each team takes turns nominating players to be put up for bid in a live auction. The team with the highest final bid on the player wins the selection, and the player is added to the winning team's roster, while the amount bid on the player is subtracted from the winning team's budget. The draft continues until each team's roster is full, typically with approximately 100% of each team's budget spent. 
+
+
+I prefer salary cap drafts over snake drafts for a couple of reasons. In a snake draft, you are somewhat limited by your draft position with regard to the players you can select, solely due to the randomness of the draft order and due to no fault of your own. For example, if you had the 6th pick in the draft this year and wanted Christian McCaffrey on your team, there was no way to make that happen, since he was being selected within the top 3 picks of just about every fantasy draft. In a salary cap draft, however, you can bid as high as you are willing to go on players as long as you don't spend over the allotted budget. So, while you may have to pay as much as 40-45% of your budget to select McCaffrey, that option is available to you if you choose, which makes salary cap drafts more fun when you have a list of players that you are eager to target and add to your team. Salary cap drafts also allow for a wider range of strategies than snake drafts. With one selection per round in snake drafts, each team will have one player with 1st round value, one player with 2nd round value, and so on. In a salary cap draft, you choose how you want to allocate your budget across each position and where you want to spend the majority of your money. If you prefer to spend big on two stud running backs, such as Ezekiel Elliott and Dalvin Cook, and fill out the rest of your roster with depth pieces, that is an option in salary cap drafts that almost certainly wouldn't be possible in snake drafts. If you want to go with the "Zero RB" strategy and spend a lot on every position besides running back, you can lock in top receivers like Michael Thomas and Davante Adams, and wait to spend a few dollars on high-upside RBs like Antonio Gibson and JK Dobbins later in the draft. All of these different possibilities give every player an equal chance to win and add to the strategy element of fantasy that makes football season so much fun every year. 
+
+
+## Salary Cap Lineup Optimizer Shiny App
+
+
+To prepare for my salary cap drafts this season, I decided to build a Shiny app that uses linear programming to optimize total fantasy points scored during the whole season (based on point projections from FantasyPros) by a starting lineup, based on various league settings. The settings and constraints that feed the linear programming model are as follows:
+
+- **Scoring System** - Based on how your league scores points per reception. Standard leagues award 0 points per reception, Half PPR leagues award 0.5 points per reception, and PPR leagues award 1 point per reception. 
+
+- **Player Cost Metric** - Represents how you would like each player's value (in dollars) to be set when optimizing lineups, with both options coming from Yahoo. The Projected Salary option sets each player's value as the Projected Salary assigned to the player by Yahoo, while the AAV (Average Auction Value) option set each player's value to the average value (in dollars) that the player is being selected at in Yahoo salary cap drafts. These metrics can vary for some players, so I like to check out both options when examining optimal lineups. 
+
+- **Lineups to Create** - The number of top lineups that you would like the Shiny app to calculate and display.
+
+- **% of Budget to Spend** - Represents the fraction of your budget (typically \$200) that you would like to allocate toward your starting lineup. A higher percentage may lead to a more powerful starting lineup with little budget remaining for bench depth, while a lower percentage may create a suboptimal starting lineup that may be better equipped for dealing with injuries or for stashing high-upside bench players. 
+
+- **QBs, RBs, WRs, TEs, and FLEXs** - Represents the number of players from each position that can be inserted into your starting lineup. A FLEX can be filled by either a RB, WR, or TE.
+
+- **Reduce Player Impact?** - Allows you to decrease a player's point projection by 5% each time they are included in a lineup. Because there are so many different lineup options, the difference between the most optimal and second-most optimal lineup is often made by swapping out one player for another with a similar projection. By reducing a player's projection by 5% each time they are chosen for an optimal lineup, you allow for a wider variety of lineups to be displayed, which may produce a more useful output that can assist in making better decisions on how to spend your budget in your salary cap draft.
+
+
+Once all of the various options and filters are chosen, the "All Lineups" tab will show the top X lineups, where X is the number chosen in the "Lineups to Create" option. The view includes the lineup number, the QB/RB/WR/TE/FLEX combination for the lineup, the budget spent to draft the lineup (out of a possible \$200), and the total points projected for the lineup for the season. The second tab, titled "Lineup Breakdown", will show each lineup separately on its own page and includes each player selected along with their projected points, projected salary, and AAV. 
+
+
+After setting up this tool, I decided that I wanted to spend \$170 out of \$200 on my starting lineup in my Half PPR, 1QB/2RB/2WR/1TE/1FLEX salary cap drafts this year. This would leave \$30 to fill out my bench, which I felt was a good amount to ensure quality depth given the potential issues with COVID-19 impacting the season. By setting the "Reduce Player Impact?" option to "Yes" and taking a look at the optimal lineups calculated, I found that most of the top lineups included one of the top few QBs (Lamar Jackson, Patrick Mahomes, Dak Prescott, Deshaun Watson, or Russell Wilson), one of the top 4 RBs (Christian McCaffrey, Saquon Barkley, Ezekiel Elliott, or Alvin Kamara), a solid but not spectacular TE (Zach Ertz, Darren Waller, or Mark Andrews), and decent yet affordable WRs (Tyler Lockett, Robert Woods, Keenan Allen, Terry McLaurin, and DJ Chark). 
+
+
+This strategy makes sense to me, as wide receiver depth in the NFL may be at an all-time high right now, so it is possible to not spend a major portion of your budget on receivers and still receive only slightly worse production than you would from the top receivers. Meanwhile, a stud running back is probably the most valuable asset in fantasy football, as there is not a lot of depth at the position and RBs tend to receive the most touches when you factor in both carries and targets. Many teams who selected McCaffrey last season were able to ride him all the way to the fantasy championship, so it looks like it is worth paying up for one of the top RBs and hoping that you select the one that stays healthy and produces at the highest level.
+
+
+Feel free to enter your own league's settings either in the embedded Shiny app below or at the link [here](https://maxonanalytics.shinyapps.io/FF-Salary-Cap-Lineup-Optimizer/) and explore the different strategies you can adopt to try to optimize your starting lineup and improve your chances at a fantasy football championship!
+
+
+```{r shiny-app}
+knitr::include_app("https://maxonanalytics.shinyapps.io/FF-Salary-Cap-Lineup-Optimizer/", 
+                   height = "1500px")
+```
+
+
+

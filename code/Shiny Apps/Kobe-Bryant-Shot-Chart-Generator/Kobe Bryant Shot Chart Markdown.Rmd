@@ -1,0 +1,314 @@
+---
+title: "Kobe Bryant Shot Chart Shiny App"
+author: "Bryant Molloy"
+date: "April 17, 2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load packages and source code
+
+```{r}
+
+library(shiny)
+library(tidyr)
+library(ggplot2)
+library(plotly)
+library(dplyr)
+library(shiny)
+library(hexbin)
+library(httr)
+library(jsonlite)
+library(scales)
+library(DT)
+
+source("court_themes.R")
+source("plot_court.R")
+#source("players_data.R")
+#source("fetch_shots.R")
+
+```
+
+# Read Kobe Shots Data
+
+```{r}
+
+data <- read.csv("kobe_shots.csv")
+
+data <- data %>%
+  mutate(game_date_formatted = format(as.Date(game_date), '%B %d, %Y'), 
+         opponent = ifelse(htm == "LAL", as.character(vtm), as.character(htm)), 
+         game_date = as.Date(game_date), 
+         season = as.character(season), 
+         quarter = ifelse(period == 5, "OT", 
+                          ifelse(period == 6, "2OT", 
+                                 ifelse(period == 7, "3OT", period))))
+
+head(data)
+
+```
+
+# Create Game Shot Chart Function
+
+```{r shot-chart-function}
+
+# Rank games by game date
+
+add_ranks <- function(shot_data){
+  
+  game_dates <- shot_data %>% select(game_date) %>% 
+    mutate(game_date = as.Date(game_date)) %>%
+    distinct() %>%
+    mutate(game_number = rank(game_date, ties.method = "min")) %>%
+    arrange(game_date)
+
+  shot_data <- shot_data %>% mutate(game_date = as.Date(game_date)) %>%
+    inner_join(game_dates, by = "game_date") %>%
+    mutate(shot_number = rank(order(game_date, period, desc(minutes_remaining), desc(seconds_remaining)), 
+                              ties.method = "min"), 
+           season_year = as.numeric(substr(season, 1, 4)))
+  
+  return(shot_data)
+}
+
+# Create Game Shot Chart Function
+
+create_game_shot_chart <- function(shot_data){
+  
+  shot_data <- add_ranks(shot_data)
+  
+  # Create court background
+
+  court_theme <- court_themes$black
+  court <- plot_court(court_theme = court_theme, use_short_three = F)
+  
+  # Create title variables
+  
+  player <- shot_data %>% mutate(player_name = as.character(player_name)) %>%
+    select(player_name) %>% distinct()
+  
+  game_date_formatted <- shot_data %>% select(game_date_formatted) %>% distinct()
+  
+  opponent <- shot_data %>% select(opponent) %>% distinct()
+  
+  # Create FGM, FGA, FG3, FGA3 variables
+  
+  fgm <- shot_data %>%
+    group_by(game_id) %>%
+    summarise(fgm = sum(shot_made_numeric)) %>%
+    ungroup() %>%
+    select(fgm) %>% as.numeric()
+  
+  fga <- shot_data %>%
+    group_by(game_id) %>%
+    summarise(fga = sum(shot_attempted_flag)) %>%
+    ungroup() %>%
+    select(fga) %>% as.numeric()
+  
+  fg3 <- shot_data %>%
+    group_by(game_id) %>%
+    summarise(fg3 = sum(ifelse(shot_value == 3, shot_made_numeric, 0))) %>%
+    ungroup() %>%
+    select(fg3) %>% as.numeric()
+  
+  fga3 <- shot_data %>%
+    group_by(game_id) %>%
+    summarise(fga3 = sum(ifelse(shot_value == 3, shot_attempted_flag, 0))) %>%
+    ungroup() %>%
+    select(fga3) %>% as.numeric()
+  
+  # Create shot chart
+  
+  shot_chart <- court + 
+    geom_point(data = shot_data, aes(x = loc_x, y = loc_y, color = shot_made_flag, shape = shot_made_flag),
+      alpha = 0.5, size = 2) + 
+    scale_color_manual("", values = c(made = court_theme$made, missed = court_theme$missed)) + 
+    scale_shape_manual("", values = c(made = 1, missed = 4)) + 
+    ggtitle(paste(player, "Shot Chart"), 
+            subtitle = paste(game_date_formatted, "vs.", opponent, "\n", 
+                             paste0(fgm, "/", fga, " FG, ", fg3, "/", fga3, " 3FG"))) + 
+    labs(caption = "Data: stats.nba.com \n Created by: Bryant Molloy") + 
+    theme(legend.position = "none", 
+          plot.title = element_text(face = "bold", colour = "white", size = 16, hjust = 0.5), 
+          plot.subtitle = element_text(colour = "white", size = 12, hjust = 0.5), 
+          plot.caption = element_text(colour = "white", size = 9, hjust = 1))
+  
+  return(shot_chart)
+}
+
+```
+
+# Create Shiny App with filters by Opponent, Season, and Game Date
+
+```{r}
+
+# Shiny App
+
+season_choices <- data %>% select(season) %>% arrange(season) %>% unique()
+season_choices <- setNames(season_choices$season, season_choices$season)
+opponent_choices <- data %>% select(opponent) %>% arrange(opponent) %>% unique()
+opponent_choices <- setNames(opponent_choices$opponent, opponent_choices$opponent)
+game_date_choices <- data %>% select(game_date) %>% arrange(game_date) %>% unique()
+game_date_choices <- setNames(game_date_choices$game_date, game_date_choices$game_date)
+
+
+ui <- fluidPage(
+  
+  h1(id="title-heading", "Kobe Bryant Shot Chart Generator"),
+  tags$style(HTML("#title-heading{color: black; font-size: 32px; font-style: bold;}")), 
+  
+  sidebarLayout(
+    
+    
+    sidebarPanel(
+      
+      selectizeInput(inputId = 'season', 
+                  label = 'Season: ', 
+                  choices = c("Select" = "", season_choices), 
+                  multiple = F), 
+      
+      selectizeInput(inputId = 'opponent', 
+                  label = 'Opponent: ', 
+                  choices = c("Select" = "", opponent_choices), 
+                  multiple = F), 
+      
+      selectizeInput(inputId = 'game_date',
+                  label = 'Game Date: ',
+                  choices = c("Select" = "", game_date_choices),
+                  multiple = F), 
+      
+      actionButton(inputId = 'create', 
+                   label = 'Create Shot Chart')
+      
+      # , 
+      # 
+      # div(style="margin-bottom:10px"), 
+      # 
+      # downloadButton("downloadData", "Download Raw Data")
+      
+    ), #sidebarPanel 
+    
+    mainPanel(
+      
+      tabsetPanel(
+        
+        tabPanel('Shot Chart', plotOutput('shotChart')), 
+        tabPanel('Shot Data', dataTableOutput('shotData'))
+        
+      ) #tabsetPanel
+      
+      
+    ) #mainPanel
+    
+  ) #sidebarLayout
+  
+)
+
+
+
+server <- function(input, output, session){
+  
+  # Update Opponent Filter
+  
+  observe({
+    
+    opponent_filter_options <- data %>% 
+      filter(season == input$season) %>% 
+      select(opponent) %>% 
+      arrange(opponent) %>% 
+      distinct()
+    
+    opponent_filter_options <- setNames(opponent_filter_options$opponent, opponent_filter_options$opponent)
+    
+    updateSelectizeInput(session, inputId = 'opponent', label = "Opponent: ", 
+                      choices = opponent_filter_options)
+    
+  })
+  
+  # Update Game Date Filter
+  
+  observe({
+
+    game_date_filter_options <- data %>%
+      filter(season == input$season, opponent == input$opponent) %>%
+      select(game_date) %>%
+      arrange(game_date) %>%
+      distinct()
+    
+    game_date_filter_options <- setNames(game_date_filter_options$game_date, 
+                                         game_date_filter_options$game_date)
+    
+     updateSelectizeInput(session, inputId = 'game_date', label = "Game Date: ",
+                      choices = game_date_filter_options)
+
+  })
+  
+  filtered_season <- reactive({
+
+    data %>% filter(season == input$season)
+
+  })
+
+  filtered_opponent <- reactive({
+
+    filtered_season() %>% filter(opponent == input$opponent)
+
+  })
+
+  filtered_game_date <- reactive({
+
+    filtered_opponent() %>% filter(game_date == input$game_date)
+
+  })
+  
+  fully_filtered <- eventReactive(input$create, {
+    
+    filtered_game_date()
+    
+  })
+  
+  
+  output$shotChart <- renderPlot({
+    
+    if(nrow(fully_filtered()) > 0){
+      
+      create_game_shot_chart(fully_filtered())
+      
+    }
+  })
+    
+  output$shotData <- renderDataTable({
+    
+    if(nrow(fully_filtered()) > 0){
+      
+      datatable(data = fully_filtered() %>% 
+                  select(player_name, opponent, game_date, quarter, minutes_remaining, seconds_remaining, 
+                         event_type, action_type, shot_zone_basic, shot_distance, shot_value) %>%
+                  rename(Player = player_name, Opponent = opponent, `Game Date` = game_date, 
+                         Quarter = quarter, `Minutes Remaining` = minutes_remaining, 
+                         `Seconds Remaining` = seconds_remaining, `Event Type` = event_type, 
+                         `Action Type` = action_type, `Shot Zone` = shot_zone_basic, 
+                         `Shot Distance` = shot_distance, `Shot Value` = shot_value), 
+                options = list(pageLength = 5))
+      
+    }
+  })
+  
+  # output$downloadData <- downloadHandler(
+  #   filename = function() {
+  #     paste0("Kobe Bryant Shot Data - ", input$opponent, " ", input$game_date, ".csv")
+  #   },
+  #   content = function(file) {
+  #     write.csv(fully_filtered(), file, row.names = FALSE)
+  #   }
+  # )
+  
+  
+}
+
+shinyApp(ui = ui, server = server)
+
+```

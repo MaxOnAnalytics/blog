@@ -1,0 +1,10 @@
+name: Kobe-Bryant-Shot-Chart-Generator
+title:
+username:
+account: maxonanalytics
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2147390
+bundleId: 3036208
+url: https://maxonanalytics.shinyapps.io/Kobe-Bryant-Shot-Chart-Generator/
+when: 1587339615.30141
